@@ -1,0 +1,26 @@
+{
+  "name": "GlucoScan - Glycemic Impact Estimator",
+  "short_name": "GlucoScan",
+  "description": "Estimate the glycemic impact of packaged foods by scanning barcodes or searching by name.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F8FAFB",
+  "theme_color": "#0B6E72",
+  "orientation": "portrait",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["health", "food", "lifestyle"]
+}

@@ -1,0 +1,266 @@
+[
+  {
+    "name": "Roasted Chickpeas",
+    "category": "Snacks",
+    "estimatedGL": 3.2,
+    "impactLevel": "low",
+    "description": "Crunchy roasted chickpeas, high in protein and fiber with a low glycemic impact.",
+    "whyBetter": "High protein and fiber content slows glucose absorption, making it a better snack option."
+  },
+  {
+    "name": "Mixed Nuts (Unsalted)",
+    "category": "Snacks",
+    "estimatedGL": 1.5,
+    "impactLevel": "low",
+    "description": "A blend of almonds, walnuts, and cashews with minimal carbohydrate content.",
+    "whyBetter": "Healthy fats and protein with very low carb content, resulting in minimal blood sugar impact."
+  },
+  {
+    "name": "Oat Crackers (Whole Grain)",
+    "category": "Snacks",
+    "estimatedGL": 4.8,
+    "impactLevel": "moderate",
+    "description": "Whole grain oat crackers with fiber-rich composition.",
+    "whyBetter": "Whole grain oats provide sustained energy release compared to refined flour alternatives."
+  },
+  {
+    "name": "Greek Yogurt (Plain, Unsweetened)",
+    "category": "Dairy",
+    "estimatedGL": 2.1,
+    "impactLevel": "low",
+    "description": "High-protein, low-sugar yogurt with beneficial probiotics.",
+    "whyBetter": "High protein content and low sugar make this an excellent low-glycemic snack option."
+  },
+  {
+    "name": "Dark Chocolate (70%+ Cocoa)",
+    "category": "Snacks",
+    "estimatedGL": 3.5,
+    "impactLevel": "low",
+    "description": "Rich dark chocolate with minimal added sugar.",
+    "whyBetter": "Higher cocoa content means less sugar and more antioxidants compared to milk chocolate."
+  },
+  {
+    "name": "Multigrain Bread",
+    "category": "Bread & Bakery",
+    "estimatedGL": 4.5,
+    "impactLevel": "moderate",
+    "description": "Bread made with multiple whole grains for a lower glycemic profile.",
+    "whyBetter": "Multiple whole grains provide more fiber than white bread, slowing glucose absorption."
+  },
+  {
+    "name": "Hummus",
+    "category": "Dips & Spreads",
+    "estimatedGL": 1.8,
+    "impactLevel": "low",
+    "description": "Chickpea-based dip rich in fiber and plant protein.",
+    "whyBetter": "Chickpea base provides protein and fiber, making it a low-glycemic dip alternative."
+  },
+  {
+    "name": "Peanut Butter (No Added Sugar)",
+    "category": "Dips & Spreads",
+    "estimatedGL": 1.2,
+    "impactLevel": "low",
+    "description": "Natural peanut butter without added sugars or hydrogenated oils.",
+    "whyBetter": "High in healthy fats and protein with very low sugar, resulting in minimal glucose impact."
+  },
+  {
+    "name": "Ragi (Finger Millet) Crackers",
+    "category": "Snacks",
+    "estimatedGL": 4.2,
+    "impactLevel": "moderate",
+    "description": "Crackers made from finger millet, rich in calcium and fiber.",
+    "whyBetter": "Ragi has a lower glycemic index than refined wheat and is rich in minerals."
+  },
+  {
+    "name": "Quinoa Puffs",
+    "category": "Snacks",
+    "estimatedGL": 3.8,
+    "impactLevel": "moderate",
+    "description": "Light, crunchy puffs made from quinoa, a complete protein source.",
+    "whyBetter": "Quinoa provides all essential amino acids and has a moderate glycemic index."
+  },
+  {
+    "name": "Roasted Fox Nuts (Makhana)",
+    "category": "Snacks",
+    "estimatedGL": 2.5,
+    "impactLevel": "low",
+    "description": "Light, crunchy roasted lotus seeds — a traditional low-calorie snack.",
+    "whyBetter": "Very low in calories and carbs while being high in minerals and antioxidants."
+  },
+  {
+    "name": "Sugar-Free Digestive Biscuits",
+    "category": "Biscuits",
+    "estimatedGL": 4.0,
+    "impactLevel": "moderate",
+    "description": "Whole wheat digestive biscuits made without added sugar.",
+    "whyBetter": "No added sugar and whole wheat base provide a better glycemic profile than regular biscuits."
+  },
+  {
+    "name": "Lentil Chips",
+    "category": "Snacks",
+    "estimatedGL": 3.0,
+    "impactLevel": "low",
+    "description": "Crispy chips made from lentil flour, high in protein.",
+    "whyBetter": "Lentil base provides protein and fiber, making these lower-glycemic than potato chips."
+  },
+  {
+    "name": "Overnight Oats (No Sugar Added)",
+    "category": "Breakfast",
+    "estimatedGL": 4.5,
+    "impactLevel": "moderate",
+    "description": "Pre-soaked rolled oats with chia seeds and natural toppings.",
+    "whyBetter": "Soaking oats increases resistant starch, and chia seeds add fiber and omega-3s."
+  },
+  {
+    "name": "Whole Grain Muesli (No Added Sugar)",
+    "category": "Breakfast",
+    "estimatedGL": 4.8,
+    "impactLevel": "moderate",
+    "description": "Mix of whole grains, nuts, and seeds without added sweeteners.",
+    "whyBetter": "Combination of grains, nuts, and seeds provides balanced energy with lower sugar content."
+  },
+  {
+    "name": "Edamame (Frozen)",
+    "category": "Snacks",
+    "estimatedGL": 1.5,
+    "impactLevel": "low",
+    "description": "Young soybeans, high in protein and fiber with minimal carbs.",
+    "whyBetter": "Excellent protein-to-carb ratio with high fiber, resulting in very low glycemic impact."
+  },
+  {
+    "name": "Almond Flour Cookies (Sugar-Free)",
+    "category": "Biscuits",
+    "estimatedGL": 2.0,
+    "impactLevel": "low",
+    "description": "Cookies made with almond flour and natural sweeteners.",
+    "whyBetter": "Almond flour has virtually zero glycemic index, making these a better cookie option."
+  },
+  {
+    "name": "Whole Wheat Khakhra",
+    "category": "Snacks",
+    "estimatedGL": 4.0,
+    "impactLevel": "moderate",
+    "description": "Thin, crispy whole wheat flatbread snack from Gujarat.",
+    "whyBetter": "Whole wheat base and thin preparation result in smaller portions and moderate glycemic impact."
+  },
+  {
+    "name": "Poha (Flattened Rice - Thick)",
+    "category": "Breakfast",
+    "estimatedGL": 5.0,
+    "impactLevel": "moderate",
+    "description": "Thick flattened rice that can be prepared with vegetables and spices.",
+    "whyBetter": "Thick variety has slightly lower GI than regular rice. Best paired with vegetables for fiber."
+  },
+  {
+    "name": "Soya Sticks",
+    "category": "Snacks",
+    "estimatedGL": 2.8,
+    "impactLevel": "low",
+    "description": "Crunchy sticks made from soy protein.",
+    "whyBetter": "Very high in protein and low in carbs, making these an excellent low-glycemic snack."
+  },
+  {
+    "name": "Barley Porridge Mix",
+    "category": "Breakfast",
+    "estimatedGL": 3.5,
+    "impactLevel": "low",
+    "description": "Quick-cook barley porridge, one of the lowest GI grains available.",
+    "whyBetter": "Barley has one of the lowest glycemic indices among grains due to high beta-glucan fiber."
+  },
+  {
+    "name": "Brown Rice Cakes",
+    "category": "Snacks",
+    "estimatedGL": 5.5,
+    "impactLevel": "moderate",
+    "description": "Light, puffed brown rice cakes for a crunchy snack.",
+    "whyBetter": "Lower glycemic index than white rice products. Best consumed with protein toppings."
+  },
+  {
+    "name": "Flaxseed Crackers",
+    "category": "Snacks",
+    "estimatedGL": 1.0,
+    "impactLevel": "low",
+    "description": "Crackers made primarily from ground flaxseeds.",
+    "whyBetter": "Extremely high in fiber and omega-3 fats with very low net carbs."
+  },
+  {
+    "name": "Chickpea Pasta",
+    "category": "Pasta & Noodles",
+    "estimatedGL": 3.5,
+    "impactLevel": "low",
+    "description": "Pasta made from chickpea flour, high in protein and fiber.",
+    "whyBetter": "Nearly double the protein and fiber of regular pasta with a much lower glycemic impact."
+  },
+  {
+    "name": "Chia Seed Pudding",
+    "category": "Desserts",
+    "estimatedGL": 1.5,
+    "impactLevel": "low",
+    "description": "Pudding made with chia seeds soaked in milk or plant-based milk.",
+    "whyBetter": "Chia seeds are extremely high in fiber and omega-3s with minimal net carbs."
+  },
+  {
+    "name": "Roasted Pumpkin Seeds",
+    "category": "Snacks",
+    "estimatedGL": 1.0,
+    "impactLevel": "low",
+    "description": "Nutrient-dense roasted pumpkin seeds, rich in magnesium and zinc.",
+    "whyBetter": "Very low carb and high in minerals that may support blood sugar metabolism."
+  },
+  {
+    "name": "Coconut Chips (Unsweetened)",
+    "category": "Snacks",
+    "estimatedGL": 2.0,
+    "impactLevel": "low",
+    "description": "Toasted coconut chips without added sugar.",
+    "whyBetter": "High in healthy medium-chain fats with low sugar content."
+  },
+  {
+    "name": "Sugar-Free Protein Bar",
+    "category": "Bars",
+    "estimatedGL": 3.0,
+    "impactLevel": "low",
+    "description": "Protein bar sweetened with stevia or monk fruit, high in whey protein.",
+    "whyBetter": "High protein content and sugar-free formulation keep glycemic impact low."
+  },
+  {
+    "name": "Buckwheat Noodles (Soba)",
+    "category": "Pasta & Noodles",
+    "estimatedGL": 4.2,
+    "impactLevel": "moderate",
+    "description": "Japanese-style noodles made from buckwheat flour.",
+    "whyBetter": "Buckwheat has a lower glycemic index than wheat and contains rutin, an antioxidant."
+  },
+  {
+    "name": "Vegetable Sticks with Guacamole",
+    "category": "Snacks",
+    "estimatedGL": 1.0,
+    "impactLevel": "low",
+    "description": "Fresh carrot, cucumber, and celery sticks paired with avocado-based dip.",
+    "whyBetter": "Raw vegetables are very low-glycemic, and avocado provides healthy fats that slow absorption."
+  },
+  {
+    "name": "Steel-Cut Oatmeal",
+    "category": "Breakfast",
+    "estimatedGL": 4.0,
+    "impactLevel": "moderate",
+    "description": "Minimally processed whole oat groats cut into pieces.",
+    "whyBetter": "Steel-cut oats have a lower glycemic index than instant oats due to less processing."
+  },
+  {
+    "name": "Amaranth Puffs",
+    "category": "Snacks",
+    "estimatedGL": 5.8,
+    "impactLevel": "moderate",
+    "description": "Puffed amaranth grain, a traditional superfood snack.",
+    "whyBetter": "High in protein and minerals. Best consumed in small portions due to higher GI when puffed."
+  },
+  {
+    "name": "Baked Lentil Crisps",
+    "category": "Snacks",
+    "estimatedGL": 2.8,
+    "impactLevel": "low",
+    "description": "Oven-baked crisps made from lentil and rice flour blend.",
+    "whyBetter": "Baked instead of fried, with lentil protein reducing overall glycemic impact."
+  }
+]

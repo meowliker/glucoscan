@@ -1,0 +1,355 @@
+"use client";
+
+import React, { useEffect, useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import {
+  ArrowLeft,
+  Droplets,
+  Sparkles,
+  Bookmark,
+  ChevronRight,
+  Apple,
+} from "lucide-react";
+import { Loader2 } from "lucide-react";
+import Card from "@/components/ui/Card";
+import Badge from "@/components/ui/Badge";
+import Button from "@/components/ui/Button";
+import TrafficLight from "@/components/ui/TrafficLight";
+import Disclaimer from "@/components/ui/Disclaimer";
+import { useAppStore } from "@/lib/store/useAppStore";
+import { getAIInsight } from "@/lib/api/claudeAI";
+import globalFoods from "@/data/globalFoods.json";
+import type { ImpactLevel, AIInsight, AlternativeFood } from "@/types";
+
+const IMPACT_LABELS: Record<ImpactLevel, string> = {
+  low: "Low Impact",
+  moderate: "Moderate Impact",
+  high: "High Impact",
+};
+
+const IMPACT_COLORS: Record<ImpactLevel, string> = {
+  low: "text-status-success",
+  moderate: "text-status-warning",
+  high: "text-status-error",
+};
+
+const ASSESSMENT_BORDER: Record<ImpactLevel, string> = {
+  low: "border-l-status-success",
+  moderate: "border-l-status-warning",
+  high: "border-l-status-error",
+};
+
+function getAlternatives(
+  currentLevel: ImpactLevel,
+  count: number = 3
+): AlternativeFood[] {
+  const levelOrder: ImpactLevel[] = ["low", "moderate", "high"];
+  const currentIdx = levelOrder.indexOf(currentLevel);
+
+  const betterFoods = (globalFoods as AlternativeFood[]).filter((food) => {
+    const foodIdx = levelOrder.indexOf(food.impactLevel);
+    return foodIdx < currentIdx;
+  });
+
+  if (betterFoods.length >= count) {
+    const shuffled = [...betterFoods].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, count);
+  }
+
+  const sameLevelFoods = (globalFoods as AlternativeFood[]).filter(
+    (food) => food.impactLevel === currentLevel
+  );
+  const combined = [...betterFoods, ...sameLevelFoods];
+  const shuffled = [...combined].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, count);
+}
+
+export default function ResultPage() {
+  const router = useRouter();
+  const {
+    currentProduct,
+    currentResult,
+    currentAssessment,
+    addToHistory,
+  } = useAppStore();
+
+  const [aiInsight, setAiInsight] = useState<AIInsight>({
+    summary: "",
+    recommendation: "",
+    loading: true,
+  });
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (!currentProduct || !currentResult) {
+      router.replace("/");
+    }
+  }, [currentProduct, currentResult, router]);
+
+  useEffect(() => {
+    if (currentProduct && currentResult) {
+      getAIInsight(currentProduct, currentResult).then((insight) => {
+        setAiInsight(insight);
+      });
+    }
+  }, [currentProduct, currentResult]);
+
+  const alternatives = useMemo(() => {
+    if (!currentResult) return [];
+    return getAlternatives(currentResult.impactLevel, 3);
+  }, [currentResult]);
+
+  if (!currentProduct || !currentResult) {
+    return null;
+  }
+
+  const { nutrition } = currentProduct;
+  const netCarbs = currentResult.netCarbs;
+  const displayLevel = currentAssessment
+    ? currentAssessment.adjustedImpactLevel
+    : currentResult.impactLevel;
+
+  const handleSave = () => {
+    addToHistory(
+      currentProduct,
+      currentResult,
+      currentAssessment ?? undefined
+    );
+    setSaved(true);
+    setTimeout(() => {
+      router.push("/");
+    }, 1200);
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="max-w-lg mx-auto px-4 py-4 pb-24">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-6">
+          <button
+            onClick={() => router.back()}
+            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+            aria-label="Go back"
+          >
+            <ArrowLeft size={24} className="text-text-primary" />
+          </button>
+          <h1 className="text-heading-md font-bold text-text-primary">
+            Scan Result
+          </h1>
+        </div>
+
+        {/* Product Info */}
+        <div className="text-center mb-6">
+          <h2 className="text-heading-lg font-bold text-text-primary">
+            {currentProduct.name}
+          </h2>
+          {currentProduct.brand && (
+            <p className="text-body-sm text-text-secondary mt-1">
+              {currentProduct.brand}
+            </p>
+          )}
+        </div>
+
+        {/* Product Image */}
+        {currentProduct.imageUrl && (
+          <div className="flex justify-center mb-6">
+            <div className="relative w-32 h-32 rounded-card overflow-hidden border border-border">
+              <Image
+                src={currentProduct.imageUrl}
+                alt={currentProduct.name}
+                fill
+                className="object-contain"
+                sizes="128px"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Traffic Light */}
+        <div className="flex flex-col items-center mb-6">
+          <TrafficLight
+            level={displayLevel}
+            score={currentResult.impactScore}
+            size="lg"
+            animated
+          />
+          <p
+            className={`mt-3 text-body-lg font-semibold ${IMPACT_COLORS[displayLevel]}`}
+          >
+            {IMPACT_LABELS[displayLevel]}
+          </p>
+          <p className="text-caption text-text-muted mt-1">
+            Estimated Glycemic Impact Score
+          </p>
+        </div>
+
+        {/* Personalized Assessment */}
+        {currentAssessment && (
+          <Card
+            className={`mb-4 border-l-4 ${
+              ASSESSMENT_BORDER[currentAssessment.adjustedImpactLevel]
+            }`}
+          >
+            <div className="flex items-start gap-3">
+              <Droplets
+                size={20}
+                className={`flex-shrink-0 mt-0.5 ${
+                  IMPACT_COLORS[currentAssessment.adjustedImpactLevel]
+                }`}
+              />
+              <div>
+                <p className="text-body-sm font-semibold text-text-primary mb-1">
+                  Personalized Assessment
+                </p>
+                <p className="text-body-sm text-text-secondary leading-relaxed">
+                  {currentAssessment.message}
+                </p>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {/* Nutrition Breakdown */}
+        <Card className="mb-4">
+          <h3 className="text-body-lg font-bold text-text-primary mb-3">
+            Nutrition Breakdown
+          </h3>
+          <p className="text-caption text-text-muted mb-3">
+            Per 100g serving (estimated values)
+          </p>
+          <div className="space-y-2">
+            <NutritionRow label="Carbohydrates" value={nutrition.totalCarbs} />
+            <NutritionRow label="Fiber" value={nutrition.fiber} />
+            <NutritionRow label="Net Carbs" value={netCarbs} highlight />
+            <NutritionRow label="Fat" value={nutrition.fat} />
+            <NutritionRow label="Protein" value={nutrition.protein} />
+          </div>
+        </Card>
+
+        {/* AI Insight */}
+        <Card className="mb-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles size={18} className="text-accent" />
+            <h3 className="text-body-lg font-bold text-text-primary">
+              AI Insight
+            </h3>
+          </div>
+          {aiInsight.loading ? (
+            <div className="flex items-center gap-3 py-4">
+              <Loader2 size={20} className="text-primary animate-spin" />
+              <p className="text-body-sm text-text-secondary">
+                Generating insight...
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <p className="text-body-sm text-text-secondary leading-relaxed">
+                {aiInsight.summary}
+              </p>
+              {aiInsight.recommendation && (
+                <p className="text-body-sm text-text-secondary leading-relaxed">
+                  {aiInsight.recommendation}
+                </p>
+              )}
+            </div>
+          )}
+        </Card>
+
+        {/* Alternatives */}
+        {alternatives.length > 0 && (
+          <div className="mb-6">
+            <div className="flex items-center gap-2 mb-3">
+              <Apple size={18} className="text-primary" />
+              <h3 className="text-body-lg font-bold text-text-primary">
+                Estimated Lower-Impact Alternatives
+              </h3>
+            </div>
+            <div className="space-y-3">
+              {alternatives.map((alt, idx) => (
+                <Card key={idx} padding="sm">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="text-body-sm font-semibold text-text-primary truncate">
+                          {alt.name}
+                        </p>
+                        <Badge level={alt.impactLevel} size="sm">
+                          {IMPACT_LABELS[alt.impactLevel]}
+                        </Badge>
+                      </div>
+                      <p className="text-caption text-text-muted mb-1">
+                        Estimated GL: {alt.estimatedGL}
+                      </p>
+                      <p className="text-caption text-text-secondary leading-relaxed">
+                        {alt.whyBetter}
+                      </p>
+                    </div>
+                    <ChevronRight
+                      size={16}
+                      className="text-text-muted flex-shrink-0 ml-2 mt-1"
+                    />
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Save Button */}
+        <div className="mb-6">
+          <Button
+            variant="primary"
+            fullWidth
+            size="lg"
+            onClick={handleSave}
+            disabled={saved}
+          >
+            <Bookmark size={18} className="mr-2" />
+            {saved ? "Saved!" : "Save to History"}
+          </Button>
+        </div>
+
+        {/* Disclaimer */}
+        <Disclaimer />
+      </div>
+    </div>
+  );
+}
+
+function NutritionRow({
+  label,
+  value,
+  highlight = false,
+}: {
+  label: string;
+  value: number;
+  highlight?: boolean;
+}) {
+  return (
+    <div
+      className={`flex items-center justify-between py-2 ${
+        highlight
+          ? "bg-primary/5 -mx-4 px-4 rounded-button"
+          : "border-b border-border last:border-b-0"
+      }`}
+    >
+      <span
+        className={`text-body-sm ${
+          highlight
+            ? "font-semibold text-primary"
+            : "text-text-secondary"
+        }`}
+      >
+        {label}
+      </span>
+      <span
+        className={`text-body-sm font-medium ${
+          highlight ? "text-primary" : "text-text-primary"
+        }`}
+      >
+        {value.toFixed(1)}g
+      </span>
+    </div>
+  );
+}
