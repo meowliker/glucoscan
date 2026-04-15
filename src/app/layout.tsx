@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import BottomNav from "@/components/ui/BottomNav";
+import AppShell from "@/components/ui/AppShell";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -45,8 +45,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
       <body className="font-sans antialiased bg-background text-text-primary min-h-screen">
-        <main className="min-h-screen pb-20">{children}</main>
-        <BottomNav />
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );

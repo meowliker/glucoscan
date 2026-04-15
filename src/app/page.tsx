@@ -4,7 +4,7 @@ import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  ScanLine,
+  Camera,
   Search,
   Settings,
   ChevronRight,
@@ -150,8 +150,8 @@ export default function HomePage() {
             fullWidth
             onClick={() => router.push("/scanner")}
           >
-            <ScanLine className="w-5 h-5 mr-2" />
-            Scan Food
+            <Camera className="w-5 h-5 mr-2" />
+            Identify Food
           </Button>
           <Button
             variant="outline"

@@ -12,9 +12,18 @@ export function calculateGlycemicResult(
   ingredients?: string
 ): GlycemicResult {
   const netCarbs = Math.max(0, nutrition.totalCarbs - nutrition.fiber);
-  const estimatedGI = ingredients
+  let estimatedGI = ingredients
     ? estimateGIFromIngredients(ingredients)
     : 55;
+
+  // If sugar data is available, blend it into the GI estimate
+  // Sugar (sucrose) has GI ~65, high sugar ratio raises effective GI
+  if (nutrition.sugar !== undefined && nutrition.totalCarbs > 0) {
+    const sugarRatio = Math.min(nutrition.sugar / nutrition.totalCarbs, 1);
+    const sugarGI = 65;
+    // Blend: if 100% sugar, GI should be ~65; if 0% sugar, keep ingredient-based GI
+    estimatedGI = Math.round(estimatedGI * (1 - sugarRatio * 0.3) + sugarGI * sugarRatio * 0.3);
+  }
 
   const rawGL = (estimatedGI * netCarbs) / 100;
 

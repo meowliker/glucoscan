@@ -10,12 +10,14 @@ import {
   Info,
   Shield,
   FileText,
+  LogOut,
 } from "lucide-react";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
 import Disclaimer from "@/components/ui/Disclaimer";
 import { useAppStore } from "@/lib/store/useAppStore";
+import { useAuthStore } from "@/lib/store/useAuthStore";
 import { APP_NAME, APP_VERSION, APP_DESCRIPTION } from "@/constants/strings";
 import type { BloodSugarUnit } from "@/types";
 
@@ -27,8 +29,16 @@ export default function SettingsPage() {
     clearHistory,
     bloodSugarUnit,
   } = useAppStore();
+  const { user, signOut } = useAuthStore();
 
   const [showClearModal, setShowClearModal] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    await signOut();
+    router.push("/auth/login");
+  };
 
   useEffect(() => {
     loadSettings();
@@ -168,6 +178,27 @@ export default function SettingsPage() {
               <ChevronRight size={18} className="text-text-muted" />
             </Link>
           </div>
+        </Card>
+
+        {/* Account */}
+        <Card className="mb-4">
+          <h3 className="text-label uppercase text-text-secondary mb-3">
+            Account
+          </h3>
+          {user && (
+            <p className="text-body-sm text-text-primary mb-3">
+              {user.email}
+            </p>
+          )}
+          <Button
+            variant="danger"
+            fullWidth
+            onClick={handleLogout}
+            loading={loggingOut}
+          >
+            <LogOut size={18} className="mr-2" />
+            {loggingOut ? "Signing out..." : "Sign Out"}
+          </Button>
         </Card>
 
         {/* Disclaimer */}

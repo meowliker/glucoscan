@@ -262,5 +262,187 @@
     "impactLevel": "low",
     "description": "Oven-baked crisps made from lentil and rice flour blend.",
     "whyBetter": "Baked instead of fried, with lentil protein reducing overall glycemic impact."
+  },
+  {
+    "name": "Parle-G Biscuits",
+    "brand": "Parle",
+    "category": "Biscuits",
+    "estimatedGL": 7.2,
+    "impactLevel": "high",
+    "description": "Classic Indian glucose biscuit made with wheat flour and sugar.",
+    "whyBetter": "Widely available, but high in sugar. Consider sugar-free digestive biscuits instead."
+  },
+  {
+    "name": "Maggi 2-Minute Noodles",
+    "brand": "Nestle",
+    "category": "Instant Noodles",
+    "estimatedGL": 6.5,
+    "impactLevel": "moderate",
+    "description": "Popular instant noodles made from refined wheat flour (maida).",
+    "whyBetter": "Convenient but made from refined flour. Try whole wheat or millet-based noodles."
+  },
+  {
+    "name": "Real Activ Juice",
+    "brand": "Real",
+    "category": "Beverages",
+    "estimatedGL": 7.0,
+    "impactLevel": "high",
+    "description": "Packaged fruit juice with added sugar. High glycemic impact due to fruit sugars.",
+    "whyBetter": "Fruit juices lack fiber found in whole fruits. Consider whole fruits or buttermilk instead."
+  },
+  {
+    "name": "Britannia Marie Gold",
+    "brand": "Britannia",
+    "category": "Biscuits",
+    "estimatedGL": 6.8,
+    "impactLevel": "high",
+    "description": "Light tea biscuit made with wheat flour, sugar, and vegetable oil.",
+    "whyBetter": "Lower fat than cream biscuits but still high sugar. Try oat biscuits for lower GI."
+  },
+  {
+    "name": "Haldiram's Aloo Bhujia",
+    "brand": "Haldiram's",
+    "category": "Snacks",
+    "estimatedGL": 5.5,
+    "impactLevel": "moderate",
+    "description": "Traditional Indian fried snack made from potato and gram flour.",
+    "whyBetter": "Gram flour adds protein but the frying and potato starch raise GI. Try roasted chana instead."
+  },
+  {
+    "name": "Amul Buttermilk (Chaas)",
+    "brand": "Amul",
+    "category": "Beverages",
+    "estimatedGL": 1.5,
+    "impactLevel": "low",
+    "description": "Spiced buttermilk drink, low in carbs and rich in probiotics.",
+    "whyBetter": "Very low glycemic impact. Probiotics support gut health. Great alternative to fruit juices."
+  },
+  {
+    "name": "MTR Rava Idli Mix",
+    "brand": "MTR",
+    "category": "Breakfast",
+    "estimatedGL": 5.8,
+    "impactLevel": "moderate",
+    "description": "Instant mix for making semolina idlis, a South Indian breakfast staple.",
+    "whyBetter": "Idlis are steamed (not fried) but semolina has moderate GI. Pair with sambar for fiber."
+  },
+  {
+    "name": "Patanjali Dalia (Broken Wheat)",
+    "brand": "Patanjali",
+    "category": "Breakfast",
+    "estimatedGL": 3.5,
+    "impactLevel": "low",
+    "description": "Cracked whole wheat porridge, a traditional high-fiber Indian breakfast.",
+    "whyBetter": "Whole wheat retains bran and fiber, giving it a much lower GI than refined cereals."
+  },
+  {
+    "name": "Paper Boat Aam Panna",
+    "brand": "Paper Boat",
+    "category": "Beverages",
+    "estimatedGL": 5.0,
+    "impactLevel": "moderate",
+    "description": "Traditional raw mango drink with added sugar.",
+    "whyBetter": "Contains some sugar but lower than most fruit juices. Best consumed in small portions."
+  },
+  {
+    "name": "Thums Up / Cola Drinks",
+    "category": "Beverages",
+    "estimatedGL": 8.5,
+    "impactLevel": "high",
+    "description": "Carbonated soft drink with high sugar content (10-11g per 100ml).",
+    "whyBetter": "Very high sugar. Consider sparkling water with lemon, or sugar-free alternatives."
+  },
+  {
+    "name": "Lijjat Papad",
+    "brand": "Lijjat",
+    "category": "Snacks",
+    "estimatedGL": 3.0,
+    "impactLevel": "low",
+    "description": "Thin lentil-based papad/papadum, roasted or microwaved.",
+    "whyBetter": "Made from urad dal (black gram), high in protein with low carb content when roasted."
+  },
+  {
+    "name": "Aashirvaad Atta (Whole Wheat)",
+    "brand": "Aashirvaad",
+    "category": "Staples",
+    "estimatedGL": 4.5,
+    "impactLevel": "moderate",
+    "description": "Whole wheat flour for making chapatis and rotis.",
+    "whyBetter": "Whole wheat has lower GI than maida. Chapatis are a better choice than naan or white bread."
+  },
+  {
+    "name": "Saffola Oats",
+    "brand": "Saffola",
+    "category": "Breakfast",
+    "estimatedGL": 4.2,
+    "impactLevel": "moderate",
+    "description": "Rolled oats, can be prepared as porridge or used in various recipes.",
+    "whyBetter": "Oats are rich in beta-glucan fiber which helps slow glucose absorption."
+  },
+  {
+    "name": "Bikaji Rasgulla",
+    "brand": "Bikaji",
+    "category": "Sweets",
+    "estimatedGL": 8.0,
+    "impactLevel": "high",
+    "description": "Traditional Indian sweet made from chhena (cottage cheese) in sugar syrup.",
+    "whyBetter": "Very high sugar content from syrup. Consider sugar-free versions or small portions."
+  },
+  {
+    "name": "Bournvita / Malt Beverages",
+    "brand": "Cadbury",
+    "category": "Beverages",
+    "estimatedGL": 7.5,
+    "impactLevel": "high",
+    "description": "Chocolate malt drink mix, often high in sugar and maltodextrin.",
+    "whyBetter": "Contains maltodextrin (GI 100) and sugar. Consider plain milk with cocoa powder instead."
+  },
+  {
+    "name": "Curd / Plain Yogurt (Homemade)",
+    "category": "Dairy",
+    "estimatedGL": 1.8,
+    "impactLevel": "low",
+    "description": "Plain unsweetened yogurt/dahi, a staple in Indian meals.",
+    "whyBetter": "Very low GI, rich in probiotics and protein. Excellent meal accompaniment for diabetics."
+  },
+  {
+    "name": "Sprouts (Moong/Chana)",
+    "category": "Snacks",
+    "estimatedGL": 1.5,
+    "impactLevel": "low",
+    "description": "Sprouted green gram or chickpeas, eaten raw or lightly cooked.",
+    "whyBetter": "Sprouting reduces glycemic index and increases nutrient availability. Very high protein."
+  },
+  {
+    "name": "Paneer (Cottage Cheese)",
+    "category": "Dairy",
+    "estimatedGL": 0.5,
+    "impactLevel": "low",
+    "description": "Fresh Indian cottage cheese, extremely low in carbs and high in protein.",
+    "whyBetter": "Near-zero carbs with high protein and fat, making it an ideal low-glycemic food."
+  },
+  {
+    "name": "Ragi Dosa Mix",
+    "category": "Breakfast",
+    "estimatedGL": 4.0,
+    "impactLevel": "moderate",
+    "description": "Dosa batter mix made from finger millet (ragi) flour.",
+    "whyBetter": "Ragi has a lower GI than rice and is rich in calcium. Better alternative to regular dosa."
+  },
+  {
+    "name": "Sattu Drink",
+    "category": "Beverages",
+    "estimatedGL": 2.5,
+    "impactLevel": "low",
+    "description": "Traditional drink made from roasted gram (chana) flour, popular in Bihar and UP.",
+    "whyBetter": "Very high protein, low GI. Excellent summer drink and much better than sugary beverages."
+  },
+  {
+    "name": "Dry Fruits Chikki (Sugar-Free)",
+    "category": "Snacks",
+    "estimatedGL": 3.5,
+    "impactLevel": "low",
+    "description": "Brittle bar made with mixed dry fruits and jaggery-free or sugar-free sweetener.",
+    "whyBetter": "Nuts provide healthy fats and protein. Sugar-free versions avoid the glucose spike."
   }
 ]

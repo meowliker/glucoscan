@@ -40,28 +40,100 @@ const ASSESSMENT_BORDER: Record<ImpactLevel, string> = {
   high: "border-l-status-error",
 };
 
+/**
+ * Minimal markdown parser for bold (**text**) and italic (*text*).
+ * Returns a React fragment with proper formatting.
+ */
+function renderMarkdown(text: string): React.ReactNode {
+  if (!text) return null;
+
+  // Split on bold (**...**) and italic (*...*), preserving delimiters
+  const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g);
+
+  return parts.map((part, i) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return (
+        <strong key={i} className="font-semibold text-text-primary">
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+    if (part.startsWith("*") && part.endsWith("*") && part.length > 2) {
+      return (
+        <em key={i} className="italic">
+          {part.slice(1, -1)}
+        </em>
+      );
+    }
+    return <React.Fragment key={i}>{part}</React.Fragment>;
+  });
+}
+
 function getAlternatives(
   currentLevel: ImpactLevel,
+  productName: string,
+  productCategory?: string,
   count: number = 3
 ): AlternativeFood[] {
-  const levelOrder: ImpactLevel[] = ["low", "moderate", "high"];
-  const currentIdx = levelOrder.indexOf(currentLevel);
+  const allFoods = globalFoods as AlternativeFood[];
+  const nameLower = productName.toLowerCase();
+  const nameWords = nameLower.split(/\s+/).filter((w) => w.length > 2);
+  const catLower = (productCategory || "").toLowerCase();
 
-  const betterFoods = (globalFoods as AlternativeFood[]).filter((food) => {
-    const foodIdx = levelOrder.indexOf(food.impactLevel);
-    return foodIdx < currentIdx;
+  // Score each food by relevance to the scanned product
+  const scored = allFoods.map((food) => {
+    const foodNameLower = food.name.toLowerCase();
+    const foodCatLower = food.category.toLowerCase();
+    let relevance = 0;
+
+    // Category match (strongest signal for similar products)
+    if (catLower && foodCatLower.includes(catLower)) relevance += 10;
+    if (catLower && catLower.includes(foodCatLower)) relevance += 10;
+
+    // Word overlap with product name
+    nameWords.forEach((w) => {
+      if (foodNameLower.includes(w)) relevance += 5;
+    });
+
+    // Same broad food type keywords
+    const typeKeywords = ["biscuit", "juice", "drink", "snack", "noodle", "bread", "cereal", "oat", "milk", "yogurt", "curd", "supplement", "protein", "creatine", "bar", "cookie", "chips", "puff"];
+    typeKeywords.forEach((kw) => {
+      if (nameLower.includes(kw) && foodNameLower.includes(kw)) relevance += 8;
+    });
+
+    return { food, relevance };
   });
 
-  if (betterFoods.length >= count) {
-    const shuffled = [...betterFoods].sort(() => Math.random() - 0.5);
+  // Sort by relevance, then pick from relevant ones
+  scored.sort((a, b) => b.relevance - a.relevance);
+
+  // Get relevant alternatives (relevance > 0), preferring lower impact
+  const relevant = scored.filter((s) => s.relevance > 0);
+
+  if (relevant.length >= count) {
+    // Sort relevant by impact level (prefer lower)
+    const levelOrder: ImpactLevel[] = ["low", "moderate", "high"];
+    relevant.sort((a, b) => {
+      const levelDiff = levelOrder.indexOf(a.food.impactLevel) - levelOrder.indexOf(b.food.impactLevel);
+      if (levelDiff !== 0) return levelDiff;
+      return b.relevance - a.relevance;
+    });
+    return relevant.slice(0, count).map((s) => s.food);
+  }
+
+  // Not enough relevant matches — fall back to same category foods
+  const sameCat = allFoods.filter((f) => {
+    if (!catLower) return false;
+    return f.category.toLowerCase().includes(catLower) || catLower.includes(f.category.toLowerCase());
+  });
+  if (sameCat.length >= count) {
+    const shuffled = [...sameCat].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, count);
   }
 
-  const sameLevelFoods = (globalFoods as AlternativeFood[]).filter(
-    (food) => food.impactLevel === currentLevel
-  );
-  const combined = [...betterFoods, ...sameLevelFoods];
-  const shuffled = [...combined].sort(() => Math.random() - 0.5);
+  // Last resort — random low-impact foods
+  const lowImpact = allFoods.filter((f) => f.impactLevel === "low");
+  const shuffled = [...lowImpact].sort(() => Math.random() - 0.5);
   return shuffled.slice(0, count);
 }
 
@@ -96,9 +168,14 @@ export default function ResultPage() {
   }, [currentProduct, currentResult]);
 
   const alternatives = useMemo(() => {
-    if (!currentResult) return [];
-    return getAlternatives(currentResult.impactLevel, 3);
-  }, [currentResult]);
+    if (!currentResult || !currentProduct) return [];
+    return getAlternatives(
+      currentResult.impactLevel,
+      currentProduct.name,
+      undefined,
+      3
+    );
+  }, [currentResult, currentProduct]);
 
   if (!currentProduct || !currentResult) {
     return null;
@@ -245,11 +322,11 @@ export default function ResultPage() {
           ) : (
             <div className="space-y-2">
               <p className="text-body-sm text-text-secondary leading-relaxed">
-                {aiInsight.summary}
+                {renderMarkdown(aiInsight.summary)}
               </p>
               {aiInsight.recommendation && (
                 <p className="text-body-sm text-text-secondary leading-relaxed">
-                  {aiInsight.recommendation}
+                  {renderMarkdown(aiInsight.recommendation)}
                 </p>
               )}
             </div>
@@ -262,7 +339,9 @@ export default function ResultPage() {
             <div className="flex items-center gap-2 mb-3">
               <Apple size={18} className="text-primary" />
               <h3 className="text-body-lg font-bold text-text-primary">
-                Estimated Lower-Impact Alternatives
+                {displayLevel === "low"
+                  ? "Similar Products You May Like"
+                  : "Similar Products with Lower Impact"}
               </h3>
             </div>
             <div className="space-y-3">

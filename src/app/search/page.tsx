@@ -2,20 +2,21 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Search, Loader2, Package } from "lucide-react";
+import { ArrowLeft, Search, Loader2, Package, Sparkles } from "lucide-react";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
-
 import { useAppStore } from "@/lib/store/useAppStore";
-import { searchProducts } from "@/lib/api/openFoodFacts";
+import { lookupNutritionByName } from "@/lib/api/nutritionAI";
+import { searchProductsInDb, savedProductToFoodProduct, type SavedProduct } from "@/lib/db/products";
 import { calculateGlycemicResult, getPersonalizedAssessment } from "@/lib/utils/glCalculator";
 import globalFoods from "@/data/globalFoods.json";
 import type { FoodProduct, AlternativeFood, ImpactLevel } from "@/types";
 
 interface SearchResult {
-  type: "local" | "api";
+  type: "local" | "api" | "db";
   product?: FoodProduct;
   localFood?: AlternativeFood;
+  savedProduct?: SavedProduct;
 }
 
 export default function SearchPage() {
@@ -23,6 +24,7 @@ export default function SearchPage() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -48,25 +50,24 @@ export default function SearchPage() {
       setHasSearched(true);
       setLoading(true);
 
-      // Search local foods
+      // Search local foods (curated JSON database)
       const localResults: SearchResult[] = (globalFoods as AlternativeFood[])
         .filter((food) => food.name.toLowerCase().includes(trimmed))
         .map((food) => ({ type: "local" as const, localFood: food }));
 
-      // Show local results immediately
       setResults(localResults);
 
-      // Search Open Food Facts API if query is long enough
-      if (trimmed.length > 2) {
+      // Search shared products DB (crowd-sourced from prior AI lookups)
+      if (trimmed.length > 1) {
         try {
-          const apiProducts = await searchProducts(trimmed);
-          const apiResults: SearchResult[] = apiProducts.map((product) => ({
-            type: "api" as const,
-            product,
+          const dbProducts = await searchProductsInDb(trimmed, 8);
+          const dbResults: SearchResult[] = dbProducts.map((savedProduct) => ({
+            type: "db" as const,
+            savedProduct,
           }));
-          setResults([...localResults, ...apiResults]);
+          setResults([...dbResults, ...localResults]);
         } catch {
-          // Keep local results on API error
+          // ignore
         }
       }
 
@@ -151,6 +152,44 @@ export default function SearchPage() {
     router.push("/result");
   };
 
+  const handleDbProductTap = (saved: SavedProduct) => {
+    const product = savedProductToFoodProduct(saved);
+    handleApiFoodTap(product);
+  };
+
+  const handleAILookup = async () => {
+    const trimmed = query.trim();
+    if (!trimmed) return;
+
+    setAiLoading(true);
+    try {
+      const product = await lookupNutritionByName(trimmed);
+      if (product) {
+        const result = calculateGlycemicResult(
+          product.nutrition,
+          product.ingredients
+        );
+        let assessment = undefined;
+        if (bloodSugar !== null) {
+          assessment = getPersonalizedAssessment(
+            bloodSugar,
+            bloodSugarUnit,
+            result.impactLevel
+          );
+        }
+        setCurrentProduct(product);
+        setCurrentResult(result);
+        setCurrentAssessment(assessment ?? null);
+        addToHistory(product, result, assessment);
+        router.push("/result");
+      }
+    } catch {
+      // ignore
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const impactLabels: Record<ImpactLevel, string> = {
     low: "Low",
     moderate: "Moderate",
@@ -205,10 +244,72 @@ export default function SearchPage() {
           </div>
         )}
 
+        {/* AI Lookup Button — always show when there's a query */}
+        {query.trim().length > 1 && (
+          <Card className="mb-4 border-primary/20 bg-primary/5" padding="sm">
+            <button
+              onClick={handleAILookup}
+              disabled={aiLoading}
+              className="w-full flex items-center gap-3 text-left"
+            >
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                {aiLoading ? (
+                  <Loader2 size={20} className="text-primary animate-spin" />
+                ) : (
+                  <Sparkles size={20} className="text-primary" />
+                )}
+              </div>
+              <div className="flex-1">
+                <p className="text-body-sm font-semibold text-text-primary">
+                  {aiLoading ? "Looking up nutrition..." : `Look up "${query.trim()}" with AI`}
+                </p>
+                <p className="text-caption text-text-muted">
+                  AI-powered nutrition lookup — works for any product worldwide
+                </p>
+              </div>
+            </button>
+          </Card>
+        )}
+
         {/* Results List */}
         {results.length > 0 && (
           <div className="flex flex-col gap-2">
             {results.map((item, idx) => {
+              if (item.type === "db" && item.savedProduct) {
+                const saved = item.savedProduct;
+                return (
+                  <Card
+                    key={`db-${saved.id}`}
+                    padding="sm"
+                    onClick={() => handleDbProductTap(saved)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 min-w-0 mr-3">
+                        <p className="text-body-sm font-bold text-text-primary truncate">
+                          {saved.name}
+                        </p>
+                        {saved.brand && (
+                          <p className="text-caption text-text-muted truncate">
+                            {saved.brand}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-badge text-caption font-medium bg-accent/15 text-accent">
+                            <Sparkles size={11} /> AI Verified
+                          </span>
+                          {saved.lookupCount > 1 && (
+                            <span className="text-caption text-text-muted">
+                              {saved.lookupCount} lookups
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <Package size={18} className="text-text-muted flex-shrink-0" />
+                    </div>
+                  </Card>
+                );
+              }
+
               if (item.type === "local" && item.localFood) {
                 const food = item.localFood;
                 return (
@@ -287,10 +388,13 @@ export default function SearchPage() {
 
         {/* Empty State */}
         {hasSearched && !loading && results.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="flex flex-col items-center justify-center py-10 text-center">
             <Package size={48} className="text-text-muted mb-4" />
-            <p className="text-body-lg text-text-secondary">
-              No results found. Try a different search term.
+            <p className="text-body-lg text-text-secondary mb-2">
+              Not found in food databases
+            </p>
+            <p className="text-body-sm text-text-muted mb-4">
+              Use the AI lookup above to get nutrition data for any product
             </p>
           </div>
         )}

@@ -29,6 +29,7 @@ export default function ManualEntryPage() {
   const [fiber, setFiber] = useState("");
   const [fat, setFat] = useState("");
   const [protein, setProtein] = useState("");
+  const [sugar, setSugar] = useState("");
   const [ingredients, setIngredients] = useState("");
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -63,6 +64,7 @@ export default function ManualEntryPage() {
         fiber: fiber ? parseFloat(fiber) : 0,
         fat: fat ? parseFloat(fat) : 0,
         protein: protein ? parseFloat(protein) : 0,
+        sugar: sugar ? parseFloat(sugar) : undefined,
       },
       ingredients: ingredients.trim() || undefined,
       source: "manual",
@@ -132,6 +134,18 @@ export default function ManualEntryPage() {
               />
 
               <Input
+                label="Sugar per 100g"
+                type="number"
+                inputMode="decimal"
+                step="0.1"
+                min="0"
+                placeholder="0"
+                value={sugar}
+                onChange={(e) => setSugar(e.target.value)}
+                helperText="Grams of sugar per 100g (included in total carbs)"
+              />
+
+              <Input
                 label="Dietary Fiber per 100g"
                 type="number"
                 inputMode="decimal"
@@ -140,7 +154,7 @@ export default function ManualEntryPage() {
                 placeholder="0"
                 value={fiber}
                 onChange={(e) => setFiber(e.target.value)}
-                helperText="Grams of dietary fiber per 100g"
+                helperText="Leave as 0 if not listed on the label"
               />
 
               <Input

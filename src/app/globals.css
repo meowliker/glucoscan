@@ -40,27 +40,30 @@ body {
   }
 }
 
-/* html5-qrcode scanner overrides */
-#scanner-container video {
-  border-radius: 12px;
-}
-
+/* Quagga barcode scanner overrides */
 #scanner-container {
-  border: none !important;
-}
-
-#scanner-container > div:first-child {
-  border-radius: 12px;
+  position: relative;
   overflow: hidden;
+  border-radius: 12px;
 }
 
-/* Hide html5-qrcode branding */
-#scanner-container img[alt="Info icon"] {
-  display: none;
+#scanner-container video {
+  width: 100% !important;
+  border-radius: 12px;
+  object-fit: cover;
 }
 
-#scanner-container a {
-  display: none !important;
+#scanner-container canvas {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Quagga draws a green line on detected barcodes */
+#scanner-container canvas.drawingBuffer {
+  opacity: 0.6;
 }
 
 /* Scrollbar styling */

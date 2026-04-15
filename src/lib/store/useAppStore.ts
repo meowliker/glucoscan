@@ -9,6 +9,14 @@ import type {
   UserSettings,
 } from "@/types";
 import { generateId, formatDate } from "@/lib/utils/formatters";
+import { fetchUserSettings, updateUserSettings } from "@/lib/db/settings";
+import {
+  fetchScanHistory,
+  addScanToHistory,
+  deleteScanFromHistory,
+  clearAllHistory,
+} from "@/lib/db/history";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 interface AppState {
   settings: UserSettings;
@@ -32,10 +40,18 @@ interface AppState {
   ) => void;
   removeFromHistory: (id: string) => void;
   clearHistory: () => void;
-  loadHistory: () => void;
-  loadSettings: () => void;
-  completeOnboarding: () => void;
+  loadHistory: (userId?: string) => void;
+  loadSettings: (userId?: string) => void;
+  completeOnboarding: (userId?: string) => void;
   loadBloodSugar: () => void;
+  resetUserData: () => void;
+}
+
+async function getUserId(): Promise<string | null> {
+  const supabase = getSupabaseBrowserClient();
+  if (!supabase) return null;
+  const { data: { user } } = await supabase.auth.getUser();
+  return user?.id ?? null;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -55,9 +71,9 @@ export const useAppStore = create<AppState>((set, get) => ({
     const current = get().settings;
     const updated = { ...current, ...newSettings };
     set({ settings: updated });
-    if (typeof window !== "undefined") {
-      localStorage.setItem("glucoscan_settings", JSON.stringify(updated));
-    }
+    getUserId().then((userId) => {
+      if (userId) updateUserSettings(userId, newSettings);
+    });
   },
 
   setCurrentProduct: (product) => set({ currentProduct: product }),
@@ -80,9 +96,9 @@ export const useAppStore = create<AppState>((set, get) => ({
     const settings = get().settings;
     const updated = { ...settings, bloodSugarUnit: unit };
     set({ settings: updated });
-    if (typeof window !== "undefined") {
-      localStorage.setItem("glucoscan_settings", JSON.stringify(updated));
-    }
+    getUserId().then((userId) => {
+      if (userId) updateUserSettings(userId, { bloodSugarUnit: unit });
+    });
   },
 
   addToHistory: (product, result, assessment) => {
@@ -96,65 +112,70 @@ export const useAppStore = create<AppState>((set, get) => ({
     };
     const history = [item, ...get().history].slice(0, 100);
     set({ history });
-    if (typeof window !== "undefined") {
-      localStorage.setItem("glucoscan_history", JSON.stringify(history));
-    }
+    getUserId().then((userId) => {
+      if (userId) {
+        addScanToHistory(userId, product, result, assessment).then((dbId) => {
+          if (dbId) {
+            set({
+              history: get().history.map((h) =>
+                h.id === item.id ? { ...h, id: dbId } : h
+              ),
+            });
+          }
+        });
+      }
+    });
   },
 
   removeFromHistory: (id) => {
     const history = get().history.filter((item) => item.id !== id);
     set({ history });
-    if (typeof window !== "undefined") {
-      localStorage.setItem("glucoscan_history", JSON.stringify(history));
-    }
+    getUserId().then((userId) => {
+      if (userId) deleteScanFromHistory(userId, id);
+    });
   },
 
   clearHistory: () => {
     set({ history: [] });
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("glucoscan_history");
+    getUserId().then((userId) => {
+      if (userId) clearAllHistory(userId);
+    });
+  },
+
+  loadHistory: async (userId?: string) => {
+    const uid = userId || (await getUserId());
+    if (uid) {
+      const history = await fetchScanHistory(uid);
+      set({ history });
     }
   },
 
-  loadHistory: () => {
-    if (typeof window !== "undefined") {
-      try {
-        const stored = localStorage.getItem("glucoscan_history");
-        if (stored) {
-          set({ history: JSON.parse(stored) });
-        }
-      } catch {
-        // ignore corrupt data
+  loadSettings: async (userId?: string) => {
+    const uid = userId || (await getUserId());
+    if (uid) {
+      const settings = await fetchUserSettings(uid);
+      if (settings) {
+        set({
+          settings,
+          bloodSugarUnit: settings.bloodSugarUnit || "mg/dL",
+        });
       }
     }
   },
 
-  loadSettings: () => {
-    if (typeof window !== "undefined") {
-      try {
-        const stored = localStorage.getItem("glucoscan_settings");
-        if (stored) {
-          const settings = JSON.parse(stored);
-          set({
-            settings,
-            bloodSugarUnit: settings.bloodSugarUnit || "mg/dL",
-          });
-        }
-      } catch {
-        // ignore corrupt data
-      }
-    }
-  },
-
-  completeOnboarding: () => {
+  completeOnboarding: async (userId?: string) => {
     const settings = {
       ...get().settings,
       onboardingComplete: true,
       disclaimerAccepted: true,
     };
     set({ settings });
-    if (typeof window !== "undefined") {
-      localStorage.setItem("glucoscan_settings", JSON.stringify(settings));
+    const uid = userId || (await getUserId());
+    if (uid) {
+      updateUserSettings(uid, {
+        onboardingComplete: true,
+        disclaimerAccepted: true,
+      });
     }
   },
 
@@ -167,6 +188,25 @@ export const useAppStore = create<AppState>((set, get) => ({
           set({ bloodSugar: val });
         }
       }
+    }
+  },
+
+  resetUserData: () => {
+    set({
+      history: [],
+      settings: {
+        bloodSugarUnit: "mg/dL",
+        onboardingComplete: false,
+        disclaimerAccepted: false,
+      },
+      currentProduct: null,
+      currentResult: null,
+      currentAssessment: null,
+      bloodSugar: null,
+      bloodSugarUnit: "mg/dL",
+    });
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem("glucoscan_bs");
     }
   },
 }));
