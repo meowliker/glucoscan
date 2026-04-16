@@ -4,13 +4,12 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Search, Loader2, Package, Sparkles } from "lucide-react";
 import Card from "@/components/ui/Card";
-import Badge from "@/components/ui/Badge";
 import { useAppStore } from "@/lib/store/useAppStore";
 import { lookupNutritionByName } from "@/lib/api/nutritionAI";
 import { searchProductsInDb, savedProductToFoodProduct, type SavedProduct } from "@/lib/db/products";
 import { calculateGlycemicResult, getPersonalizedAssessment } from "@/lib/utils/glCalculator";
 import globalFoods from "@/data/globalFoods.json";
-import type { FoodProduct, AlternativeFood, ImpactLevel } from "@/types";
+import type { FoodProduct, AlternativeFood } from "@/types";
 
 interface SearchResult {
   type: "local" | "api" | "db";
@@ -188,12 +187,6 @@ export default function SearchPage() {
     } finally {
       setAiLoading(false);
     }
-  };
-
-  const impactLabels: Record<ImpactLevel, string> = {
-    low: "Low",
-    moderate: "Moderate",
-    high: "High",
   };
 
   return (
