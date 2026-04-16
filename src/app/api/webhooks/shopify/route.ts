@@ -5,10 +5,12 @@ import crypto from "crypto";
 const SHOPIFY_WEBHOOK_SECRET = process.env.SHOPIFY_WEBHOOK_SECRET;
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://glucoscan-cyan.vercel.app";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://app.gainedfocus.com";
+// Comma-separated list of Shopify product IDs that grant GlucoScan access
+const GLUCOSCAN_PRODUCT_IDS = process.env.GLUCOSCAN_PRODUCT_IDS || "";
 
 /**
- * Generate a random 8-char alphanumeric token (excludes ambiguous chars like 0/O, 1/l)
+ * Generate a random 8-char alphanumeric token (excludes ambiguous chars)
  */
 function generateToken(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
@@ -33,6 +35,37 @@ function verifyShopifyWebhook(body: string, hmacHeader: string): boolean {
 }
 
 /**
+ * Check if the order contains the GlucoScan upsell product
+ */
+function orderContainsGlucoScan(order: {
+  line_items?: Array<{
+    product_id?: number;
+    title?: string;
+    name?: string;
+  }>;
+}): boolean {
+  if (!order.line_items || order.line_items.length === 0) return false;
+
+  // If no product IDs configured, check by product name containing "glucoscan"
+  if (!GLUCOSCAN_PRODUCT_IDS) {
+    return order.line_items.some(
+      (item) =>
+        (item.title || "").toLowerCase().includes("glucoscan") ||
+        (item.name || "").toLowerCase().includes("glucoscan")
+    );
+  }
+
+  // Check by product ID
+  const allowedIds = GLUCOSCAN_PRODUCT_IDS.split(",").map((id) =>
+    id.trim()
+  );
+  return order.line_items.some(
+    (item) =>
+      item.product_id && allowedIds.includes(String(item.product_id))
+  );
+}
+
+/**
  * Get Supabase admin client (service_role key — server-side only)
  */
 function getSupabaseAdmin() {
@@ -54,6 +87,13 @@ export async function POST(request: NextRequest) {
     }
 
     const order = JSON.parse(rawBody);
+
+    // Check if this order contains the GlucoScan product
+    if (!orderContainsGlucoScan(order)) {
+      console.log("[Shopify Webhook] Order does not contain GlucoScan product, skipping");
+      return NextResponse.json({ status: "skipped", reason: "no_glucoscan_product" });
+    }
+
     const customerEmail = order.customer?.email || order.email;
     const customerName =
       `${order.customer?.first_name || ""} ${order.customer?.last_name || ""}`.trim();
@@ -74,6 +114,7 @@ export async function POST(request: NextRequest) {
     );
 
     if (alreadyExists) {
+      console.log(`[Shopify Webhook] User ${customerEmail} already exists, skipping`);
       return NextResponse.json({ status: "existing_user" });
     }
 
@@ -101,25 +142,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Send credentials email using Supabase Edge Function or direct SMTP
-    // For Supabase built-in: we trigger a password recovery email which the
-    // user can use as their "welcome" email. But this doesn't include the token.
-    //
-    // BETTER APPROACH: Send a custom email via Supabase Auth's invite flow.
-    // The invite email template (customizable in Supabase Dashboard) can include
-    // the user's metadata. We pass the token in metadata and reference it
-    // in the email template.
-
-    // Generate a magic link they can also use (optional, as backup)
-    await supabase.auth.admin.generateLink({
-      type: "magiclink",
-      email: customerEmail,
-      options: {
-        redirectTo: `${APP_URL}/auth/callback`,
-      },
-    });
-
-    // Store the token in the user's profile for reference
+    // Store profile
     if (newUser.user) {
       await supabase.from("profiles").upsert({
         id: newUser.user.id,
@@ -128,13 +151,11 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Log for admin reference
     console.log(
       `[Shopify Webhook] Created user: ${customerEmail}, token: ${token}, userId: ${newUser.user?.id}`
     );
 
-    // Now send the welcome email with credentials
-    // Using Supabase's built-in invite email (customizable in dashboard)
+    // Send welcome email with credentials via Supabase invite
     await supabase.auth.admin.inviteUserByEmail(customerEmail, {
       data: {
         full_name: customerName,
@@ -147,7 +168,6 @@ export async function POST(request: NextRequest) {
       status: "created",
       email: customerEmail,
       userId: newUser.user?.id,
-      // Token is logged server-side only — never sent in response
     });
   } catch (err) {
     console.error("Shopify webhook error:", err);
