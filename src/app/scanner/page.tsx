@@ -251,22 +251,22 @@ export default function ScannerPage() {
 
         {/* Camera State */}
         {state === "camera" && (
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div className="flex items-center justify-center gap-2 text-text-secondary">
-              <Camera size={18} />
-              <p className="text-body-sm">
+              <Camera size={16} />
+              <p className="text-caption">
                 Point at the food product or its label
               </p>
             </div>
 
-            <div className="relative rounded-card overflow-hidden border border-border bg-black">
+            <div className="relative rounded-card overflow-hidden border border-border bg-black" style={{ maxHeight: "55vh" }}>
               <video
                 ref={videoRef}
                 autoPlay
                 playsInline
                 muted
-                className="w-full rounded-card"
-                style={{ minHeight: 300 }}
+                className="w-full h-full rounded-card object-cover"
+                style={{ maxHeight: "55vh" }}
               />
               {/* Capture button */}
               <div className="absolute bottom-0 inset-x-0 p-4 bg-gradient-to-t from-black/60 to-transparent">

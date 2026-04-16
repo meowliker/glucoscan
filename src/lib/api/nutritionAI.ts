@@ -13,6 +13,7 @@ interface AIResponse {
     calories: number;
     totalCarbs: number;
     sugar: number;
+    addedSugar: number;
     fiber: number;
     fat: number;
     protein: number;
@@ -48,6 +49,7 @@ export async function lookupNutritionByName(
         fat: data.nutrition.fat,
         protein: data.nutrition.protein,
         sugar: data.nutrition.sugar,
+        addedSugar: data.nutrition.addedSugar,
         calories: data.nutrition.calories,
       },
       ingredients: data.ingredients || undefined,

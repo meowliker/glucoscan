@@ -69,6 +69,28 @@ function renderMarkdown(text: string): React.ReactNode {
   });
 }
 
+// Map product name keywords to food categories for better matching
+const CATEGORY_MAP: Record<string, string[]> = {
+  Dairy: ["curd", "yogurt", "dahi", "milk", "paneer", "cheese", "butter", "ghee", "cream", "lassi", "chaas", "buttermilk", "whey"],
+  Beverages: ["juice", "drink", "cola", "soda", "tea", "coffee", "water", "shake", "smoothie", "aam panna", "nimbu", "sharbat"],
+  Biscuits: ["biscuit", "cookie", "cracker", "rusk", "digestive", "marie"],
+  Snacks: ["chips", "kurkure", "namkeen", "bhujia", "mixture", "puff", "makhana", "fox nut", "chana", "murukku", "mathri", "khakhra", "papad"],
+  Breakfast: ["oats", "oatmeal", "muesli", "cereal", "cornflakes", "poha", "upma", "dosa", "idli", "dalia", "porridge"],
+  "Bread & Bakery": ["bread", "roti", "chapati", "naan", "pav", "bun", "cake", "muffin"],
+  Sweets: ["rasgulla", "gulab jamun", "barfi", "ladoo", "halwa", "jalebi", "sweet", "mithai", "chikki"],
+  "Pasta & Noodles": ["noodle", "maggi", "pasta", "spaghetti", "macaroni", "hakka", "soba", "ramen"],
+  Bars: ["bar", "protein bar", "granola bar", "energy bar"],
+  Supplement: ["protein", "creatine", "supplement", "whey", "bcaa", "pre-workout", "vitamin"],
+};
+
+function inferCategory(productName: string): string {
+  const lower = productName.toLowerCase();
+  for (const [category, keywords] of Object.entries(CATEGORY_MAP)) {
+    if (keywords.some((kw) => lower.includes(kw))) return category;
+  }
+  return "";
+}
+
 function getAlternatives(
   currentLevel: ImpactLevel,
   productName: string,
@@ -78,40 +100,50 @@ function getAlternatives(
   const allFoods = globalFoods as AlternativeFood[];
   const nameLower = productName.toLowerCase();
   const nameWords = nameLower.split(/\s+/).filter((w) => w.length > 2);
-  const catLower = (productCategory || "").toLowerCase();
 
-  // Score each food by relevance to the scanned product
+  // Infer category from product name if not provided
+  const inferredCat = productCategory || inferCategory(productName);
+  const catLower = inferredCat.toLowerCase();
+
+  // Get the category keywords for matching
+  const catKeywords = CATEGORY_MAP[inferredCat] || [];
+
   const scored = allFoods.map((food) => {
     const foodNameLower = food.name.toLowerCase();
     const foodCatLower = food.category.toLowerCase();
     let relevance = 0;
 
-    // Category match (strongest signal for similar products)
-    if (catLower && foodCatLower.includes(catLower)) relevance += 10;
-    if (catLower && catLower.includes(foodCatLower)) relevance += 10;
+    // Category match (strongest signal)
+    if (catLower && foodCatLower.includes(catLower)) relevance += 15;
+    if (catLower && catLower.includes(foodCatLower)) relevance += 15;
+
+    // Check if the food matches any of the inferred category keywords
+    catKeywords.forEach((kw) => {
+      if (foodNameLower.includes(kw)) relevance += 10;
+    });
 
     // Word overlap with product name
     nameWords.forEach((w) => {
       if (foodNameLower.includes(w)) relevance += 5;
     });
 
-    // Same broad food type keywords
-    const typeKeywords = ["biscuit", "juice", "drink", "snack", "noodle", "bread", "cereal", "oat", "milk", "yogurt", "curd", "supplement", "protein", "creatine", "bar", "cookie", "chips", "puff"];
-    typeKeywords.forEach((kw) => {
-      if (nameLower.includes(kw) && foodNameLower.includes(kw)) relevance += 8;
-    });
+    // Cross-check: does the food name contain keywords from the same category map?
+    for (const [, keywords] of Object.entries(CATEGORY_MAP)) {
+      const productHasKeyword = keywords.some((kw) => nameLower.includes(kw));
+      const foodHasKeyword = keywords.some((kw) => foodNameLower.includes(kw));
+      if (productHasKeyword && foodHasKeyword) relevance += 8;
+    }
 
     return { food, relevance };
   });
 
-  // Sort by relevance, then pick from relevant ones
+  // Deduplicate relevance from multiple keyword matches
   scored.sort((a, b) => b.relevance - a.relevance);
 
   // Get relevant alternatives (relevance > 0), preferring lower impact
   const relevant = scored.filter((s) => s.relevance > 0);
 
   if (relevant.length >= count) {
-    // Sort relevant by impact level (prefer lower)
     const levelOrder: ImpactLevel[] = ["low", "moderate", "high"];
     relevant.sort((a, b) => {
       const levelDiff = levelOrder.indexOf(a.food.impactLevel) - levelOrder.indexOf(b.food.impactLevel);
@@ -121,7 +153,7 @@ function getAlternatives(
     return relevant.slice(0, count).map((s) => s.food);
   }
 
-  // Not enough relevant matches — fall back to same category foods
+  // Fallback — same category foods
   const sameCat = allFoods.filter((f) => {
     if (!catLower) return false;
     return f.category.toLowerCase().includes(catLower) || catLower.includes(f.category.toLowerCase());
@@ -297,6 +329,12 @@ export default function ResultPage() {
           </p>
           <div className="space-y-2">
             <NutritionRow label="Carbohydrates" value={nutrition.totalCarbs} />
+            {nutrition.sugar !== undefined && nutrition.sugar > 0 && (
+              <NutritionRow label="Total Sugars" value={nutrition.sugar} />
+            )}
+            {nutrition.addedSugar !== undefined && nutrition.addedSugar > 0 && (
+              <NutritionRow label="Added Sugars" value={nutrition.addedSugar} />
+            )}
             <NutritionRow label="Fiber" value={nutrition.fiber} />
             <NutritionRow label="Net Carbs" value={netCarbs} highlight />
             <NutritionRow label="Fat" value={nutrition.fat} />
@@ -341,7 +379,7 @@ export default function ResultPage() {
               <h3 className="text-body-lg font-bold text-text-primary">
                 {displayLevel === "low"
                   ? "Similar Products You May Like"
-                  : "Similar Products with Lower Impact"}
+                  : "Similar Products with Low Impact"}
               </h3>
             </div>
             <div className="space-y-3">

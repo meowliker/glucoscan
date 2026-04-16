@@ -8,6 +8,7 @@ export interface NutritionData {
   fat: number;
   protein: number;
   sugar?: number;
+  addedSugar?: number;
   calories?: number;
   servingSize?: string;
 }

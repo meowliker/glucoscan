@@ -107,15 +107,9 @@ export default function LoginPage() {
           </Button>
         </form>
 
-        {/* Sign up link */}
+        {/* Info text */}
         <p className="text-center text-body-sm text-text-muted mt-6">
-          Don&apos;t have an account?{" "}
-          <Link
-            href="/auth/signup"
-            className="text-primary font-semibold hover:underline"
-          >
-            Sign Up
-          </Link>
+          Access is provided with your purchase. Check your email for login credentials.
         </p>
 
         {/* Legal links */}

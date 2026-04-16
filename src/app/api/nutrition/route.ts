@@ -65,7 +65,8 @@ Return ONLY a JSON object:
   "nutrition": {
     "calories": number per 100g,
     "totalCarbs": number per 100g,
-    "sugar": number per 100g,
+    "sugar": number per 100g (total sugars),
+    "addedSugar": number per 100g (added sugars only, 0 if natural/unknown),
     "fiber": number per 100g,
     "fat": number per 100g,
     "protein": number per 100g,

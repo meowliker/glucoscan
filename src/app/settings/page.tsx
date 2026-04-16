@@ -11,11 +11,17 @@ import {
   Shield,
   FileText,
   LogOut,
+  Lock,
+  Eye,
+  EyeOff,
+  CheckCircle,
 } from "lucide-react";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
 import Disclaimer from "@/components/ui/Disclaimer";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useAppStore } from "@/lib/store/useAppStore";
 import { useAuthStore } from "@/lib/store/useAuthStore";
 import { APP_NAME, APP_VERSION, APP_DESCRIPTION } from "@/constants/strings";
@@ -32,12 +38,58 @@ export default function SettingsPage() {
   const { user, signOut } = useAuthStore();
 
   const [showClearModal, setShowClearModal] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
 
   const handleLogout = async () => {
     setLoggingOut(true);
     await signOut();
     router.push("/auth/login");
+  };
+
+  const handleChangePassword = async () => {
+    setPasswordError("");
+
+    if (newPassword.length < 6) {
+      setPasswordError("Password must be at least 6 characters");
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      setPasswordError("Passwords do not match");
+      return;
+    }
+
+    setPasswordLoading(true);
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) {
+      setPasswordError("Not connected");
+      setPasswordLoading(false);
+      return;
+    }
+
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+
+    setPasswordLoading(false);
+
+    if (error) {
+      setPasswordError(error.message);
+    } else {
+      setPasswordSuccess(true);
+      setNewPassword("");
+      setConfirmNewPassword("");
+      setTimeout(() => {
+        setShowPasswordModal(false);
+        setPasswordSuccess(false);
+      }, 1500);
+    }
   };
 
   useEffect(() => {
@@ -190,19 +242,93 @@ export default function SettingsPage() {
               {user.email}
             </p>
           )}
-          <Button
-            variant="danger"
-            fullWidth
-            onClick={handleLogout}
-            loading={loggingOut}
-          >
-            <LogOut size={18} className="mr-2" />
-            {loggingOut ? "Signing out..." : "Sign Out"}
-          </Button>
+          <div className="flex flex-col gap-3">
+            <Button
+              variant="outline"
+              fullWidth
+              onClick={() => {
+                setShowPasswordModal(true);
+                setPasswordError("");
+                setPasswordSuccess(false);
+                setNewPassword("");
+                setConfirmNewPassword("");
+              }}
+            >
+              <Lock size={18} className="mr-2" />
+              Change Password
+            </Button>
+            <Button
+              variant="danger"
+              fullWidth
+              onClick={handleLogout}
+              loading={loggingOut}
+            >
+              <LogOut size={18} className="mr-2" />
+              {loggingOut ? "Signing out..." : "Sign Out"}
+            </Button>
+          </div>
         </Card>
 
         {/* Disclaimer */}
         <Disclaimer />
+
+        {/* Change Password Modal */}
+        <Modal
+          isOpen={showPasswordModal}
+          onClose={() => setShowPasswordModal(false)}
+          title="Change Password"
+        >
+          {passwordSuccess ? (
+            <div className="flex flex-col items-center py-4">
+              <CheckCircle size={48} className="text-status-success mb-3" />
+              <p className="text-body-sm text-text-primary font-semibold">
+                Password updated
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {passwordError && (
+                <div className="p-3 bg-status-errorBg border border-status-error/20 rounded-button">
+                  <p className="text-body-sm text-status-error">
+                    {passwordError}
+                  </p>
+                </div>
+              )}
+              <div className="relative">
+                <Input
+                  label="New Password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Min 6 characters"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-[38px] text-text-muted"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+              <Input
+                label="Confirm New Password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Re-enter password"
+                value={confirmNewPassword}
+                onChange={(e) => setConfirmNewPassword(e.target.value)}
+              />
+              <Button
+                variant="primary"
+                fullWidth
+                loading={passwordLoading}
+                onClick={handleChangePassword}
+              >
+                {passwordLoading ? "Updating..." : "Update Password"}
+              </Button>
+            </div>
+          )}
+        </Modal>
 
         {/* Clear History Confirmation Modal */}
         <Modal
