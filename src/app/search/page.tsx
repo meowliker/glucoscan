@@ -327,9 +327,9 @@ export default function SearchPage() {
                           <span className="inline-flex items-center px-2 py-0.5 rounded-badge text-caption font-medium bg-primary/10 text-primary">
                             Local
                           </span>
-                          <Badge level={food.impactLevel} size="sm">
-                            {impactLabels[food.impactLevel]} &middot; GL {food.estimatedGL}
-                          </Badge>
+                          <span className="text-caption text-text-muted">
+                            Tap to analyze
+                          </span>
                         </div>
                       </div>
                       <Package size={18} className="text-text-muted flex-shrink-0" />
