@@ -20,26 +20,24 @@ import Badge from "@/components/ui/Badge";
 export default function HomePage() {
   const router = useRouter();
   const settings = useAppStore((s) => s.settings);
+  const settingsLoaded = useAppStore((s) => s.settingsLoaded);
   const history = useAppStore((s) => s.history);
   const bloodSugar = useAppStore((s) => s.bloodSugar);
   const bloodSugarUnit = useAppStore((s) => s.bloodSugarUnit);
   const setBloodSugar = useAppStore((s) => s.setBloodSugar);
   const setBloodSugarUnit = useAppStore((s) => s.setBloodSugarUnit);
-  const loadHistory = useAppStore((s) => s.loadHistory);
-  const loadSettings = useAppStore((s) => s.loadSettings);
   const loadBloodSugar = useAppStore((s) => s.loadBloodSugar);
 
   useEffect(() => {
-    loadSettings();
-    loadHistory();
     loadBloodSugar();
-  }, [loadSettings, loadHistory, loadBloodSugar]);
+  }, [loadBloodSugar]);
 
   useEffect(() => {
-    if (!settings.onboardingComplete) {
+    // Only redirect to onboarding AFTER settings have loaded from Supabase
+    if (settingsLoaded && !settings.onboardingComplete) {
       router.push("/onboarding");
     }
-  }, [settings.onboardingComplete, router]);
+  }, [settingsLoaded, settings.onboardingComplete, router]);
 
   const recentScans = history.slice(0, 5);
 
@@ -83,7 +81,7 @@ export default function HomePage() {
     }
   };
 
-  if (!settings.onboardingComplete) {
+  if (!settingsLoaded || !settings.onboardingComplete) {
     return null;
   }
 

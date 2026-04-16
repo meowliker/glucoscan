@@ -9,19 +9,19 @@ const slides = [
   {
     title: "What is GlucoScan",
     description:
-      "Estimate the glycemic impact of packaged foods by scanning barcodes or searching by name.",
+      "Estimate the glycemic impact of packaged foods by taking a photo or searching by name.",
     icon: "scan",
   },
   {
-    title: "How Scanning Works",
+    title: "How It Works",
     description:
-      "Point your camera at any food barcode. We'll fetch nutrition data and estimate the glycemic impact.",
+      "Point your camera at any food product and tap capture. Our AI identifies the product and researches its nutrition data instantly.",
     icon: "camera",
   },
   {
     title: "Understanding Your Score",
     description:
-      "Get a 0-10 impact score with traffic light colors. Green for low, yellow for moderate, red for high estimated impact.",
+      "Get a 0-10 impact score — green for low, yellow for moderate, red for high estimated glycemic impact. Enter your blood sugar level for a personalized assessment.",
     icon: "chart",
   },
 ] as const;

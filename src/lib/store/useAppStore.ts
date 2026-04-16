@@ -20,6 +20,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 interface AppState {
   settings: UserSettings;
+  settingsLoaded: boolean;
   history: ScanHistoryItem[];
   currentProduct: FoodProduct | null;
   currentResult: GlycemicResult | null;
@@ -60,6 +61,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     onboardingComplete: false,
     disclaimerAccepted: false,
   },
+  settingsLoaded: false,
   history: [],
   currentProduct: null,
   currentResult: null,
@@ -157,10 +159,13 @@ export const useAppStore = create<AppState>((set, get) => ({
       if (settings) {
         set({
           settings,
+          settingsLoaded: true,
           bloodSugarUnit: settings.bloodSugarUnit || "mg/dL",
         });
+        return;
       }
     }
+    set({ settingsLoaded: true });
   },
 
   completeOnboarding: async (userId?: string) => {
@@ -194,6 +199,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   resetUserData: () => {
     set({
       history: [],
+      settingsLoaded: false,
       settings: {
         bloodSugarUnit: "mg/dL",
         onboardingComplete: false,

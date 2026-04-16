@@ -39,7 +39,13 @@ export default function ScannerPage() {
     setCurrentResult,
     setCurrentAssessment,
     addToHistory,
+    loadBloodSugar,
   } = useAppStore();
+
+  // Load blood sugar from sessionStorage on mount
+  useEffect(() => {
+    loadBloodSugar();
+  }, [loadBloodSugar]);
 
   // ─── Camera Logic ───
 
