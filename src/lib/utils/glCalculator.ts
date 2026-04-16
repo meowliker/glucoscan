@@ -81,6 +81,7 @@ export function getPersonalizedAssessment(
   const bgMgDl =
     unit === "mmol/L" ? convertBloodSugar(bloodSugar, "mmol/L", "mg/dL") : bloodSugar;
 
+  const bgDisplay = `${bloodSugar} ${unit}`;
   let adjustedImpactLevel: ImpactLevel = impactLevel;
   let message: string;
   let caution = false;
@@ -90,29 +91,40 @@ export function getPersonalizedAssessment(
     if (impactLevel === "high") {
       adjustedImpactLevel = "high";
       message =
-        "Your current blood sugar reading is elevated. This food has an estimated high glycemic impact. Consider consulting your healthcare provider.";
+        `Your blood sugar is at ${bgDisplay}, which is elevated. This food has a high estimated glycemic impact and may cause a significant further increase in blood sugar levels. Consider consulting your healthcare provider before consuming.`;
     } else if (impactLevel === "moderate") {
       adjustedImpactLevel = "high";
       message =
-        "Your current blood sugar reading is elevated. Even moderate glycemic impact foods may require extra consideration. Consult your healthcare provider.";
+        `Your blood sugar is at ${bgDisplay}, which is elevated. Even though this food has a moderate glycemic impact, it may still contribute to a further rise in your levels. Consider smaller portions or consulting your healthcare provider.`;
     } else {
       adjustedImpactLevel = "moderate";
       message =
-        "Your current blood sugar reading is elevated, but this food has an estimated low glycemic impact based on its nutritional profile.";
+        `Your blood sugar is at ${bgDisplay}, which is elevated. This food has a low estimated glycemic impact, so it may cause only a minimal further increase. However, monitoring your levels is still recommended.`;
     }
   } else if (bgMgDl >= 140) {
     if (impactLevel === "high") {
       adjustedImpactLevel = "high";
       message =
-        "Your blood sugar is in an elevated range. This food has an estimated high glycemic impact. Consider consulting your healthcare provider.";
+        `Your blood sugar is at ${bgDisplay}, which is slightly elevated. This food has a high estimated glycemic impact and may push your levels higher. Consider a lower-impact alternative or a smaller portion.`;
       caution = true;
+    } else if (impactLevel === "moderate") {
+      message =
+        `Your blood sugar is at ${bgDisplay}, which is slightly elevated. This food has a moderate glycemic impact — it may cause a mild increase. Consider pairing with fiber or protein-rich foods.`;
     } else {
       message =
-        "Your current blood sugar reading is within a typical range for this assessment.";
+        `Your blood sugar is at ${bgDisplay}, which is slightly elevated. This food has a low estimated glycemic impact, so it is unlikely to cause a significant further increase.`;
     }
   } else {
-    message =
-      "Your current blood sugar reading is within a lower range. Standard glycemic thresholds apply for this assessment.";
+    if (impactLevel === "high") {
+      message =
+        `Your blood sugar is at ${bgDisplay}, which is within a normal range. This food has a high estimated glycemic impact and may cause a noticeable rise. Consider portion control.`;
+    } else if (impactLevel === "moderate") {
+      message =
+        `Your blood sugar is at ${bgDisplay}, which is within a normal range. This food has a moderate glycemic impact — it may cause a mild, gradual increase in blood sugar.`;
+    } else {
+      message =
+        `Your blood sugar is at ${bgDisplay}, which is within a normal range. This food has a low estimated glycemic impact and is unlikely to cause a significant increase.`;
+    }
   }
 
   return {

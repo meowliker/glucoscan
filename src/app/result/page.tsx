@@ -97,7 +97,11 @@ function getAlternatives(
   productCategory?: string,
   count: number = 3
 ): AlternativeFood[] {
-  const allFoods = globalFoods as AlternativeFood[];
+  // Exclude the current product from alternatives
+  const currentNameLower = productName.toLowerCase();
+  const allFoods = (globalFoods as AlternativeFood[]).filter(
+    (f) => f.name.toLowerCase() !== currentNameLower
+  );
   const nameLower = productName.toLowerCase();
   const nameWords = nameLower.split(/\s+/).filter((w) => w.length > 2);
 
