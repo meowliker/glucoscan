@@ -150,24 +150,57 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Not configured" }, { status: 500 });
     }
 
-    // Check if user already exists
-    const { data: existingUsers } = await supabase.auth.admin.listUsers();
-    const alreadyExists = existingUsers?.users?.some(
-      (u) => u.email === customerEmail
-    );
-
-    if (alreadyExists) {
-      console.log(`[Shopify Webhook] User ${customerEmail} already exists, skipping`);
-      return NextResponse.json({ status: "existing_user" });
-    }
-
-    // Generate 8-char token as temporary password
+    // Generate 8-char token — used both as the template var in the invite email
+    // and as the actual password we set right after the invite.
     const token = generateToken();
 
-    // Create user with token as password — email auto-confirmed
-    const { data: newUser, error: createError } =
-      await supabase.auth.admin.createUser({
-        email: customerEmail,
+    // Step 1: Send invite. This creates the user AND triggers the "Invite user"
+    // email template, which renders {{ .Data.access_token }} as `token`.
+    const { data: inviteData, error: inviteError } =
+      await supabase.auth.admin.inviteUserByEmail(customerEmail, {
+        data: {
+          full_name: customerName,
+          access_token: token,
+          app_url: APP_URL,
+        },
+      });
+
+    if (inviteError) {
+      const msg = inviteError.message || "";
+      const code = (inviteError as { code?: string }).code || "";
+      const isDuplicate =
+        code === "email_exists" ||
+        code === "user_already_exists" ||
+        /already.*(registered|exists)/i.test(msg);
+
+      if (isDuplicate) {
+        console.log(
+          `[Shopify Webhook] User ${customerEmail} already invited/registered, skipping`
+        );
+        return NextResponse.json({ status: "existing_user" });
+      }
+
+      console.error("[Shopify Webhook] Invite failed:", msg, "code:", code);
+      return NextResponse.json(
+        { error: "Failed to send invite", detail: msg },
+        { status: 500 }
+      );
+    }
+
+    const userId = inviteData?.user?.id;
+    if (!userId) {
+      console.error("[Shopify Webhook] Invite returned no user id");
+      return NextResponse.json(
+        { error: "Invite returned no user" },
+        { status: 500 }
+      );
+    }
+
+    // Step 2: Set the 8-char token as the actual password and confirm the email
+    // so the customer can log in directly (without clicking the invite link).
+    const { error: updateError } = await supabase.auth.admin.updateUserById(
+      userId,
+      {
         password: token,
         email_confirm: true,
         user_metadata: {
@@ -175,42 +208,46 @@ export async function POST(request: NextRequest) {
           source: "shopify",
           should_change_password: true,
         },
-      });
+      }
+    );
 
-    if (createError) {
-      console.error("Failed to create user:", createError.message);
+    if (updateError) {
+      console.error(
+        `[Shopify Webhook] updateUserById failed for ${customerEmail} (${userId}): ${updateError.message}`
+      );
       return NextResponse.json(
-        { error: "Failed to create user" },
+        {
+          error: "User invited but password not set",
+          email: customerEmail,
+          userId,
+          detail: updateError.message,
+        },
         { status: 500 }
       );
     }
 
-    // Store profile
-    if (newUser.user) {
-      await supabase.from("profiles").upsert({
-        id: newUser.user.id,
-        email: customerEmail,
-        full_name: customerName,
-      });
+    // Step 3: Upsert profile row
+    const { error: profileError } = await supabase.from("profiles").upsert({
+      id: userId,
+      email: customerEmail,
+      full_name: customerName,
+    });
+
+    if (profileError) {
+      console.error(
+        `[Shopify Webhook] profiles upsert failed for ${userId}: ${profileError.message}`
+      );
+      // Non-fatal — user can still log in.
     }
 
     console.log(
-      `[Shopify Webhook] Created user: ${customerEmail}, token: ${token}, userId: ${newUser.user?.id}`
+      `[Shopify Webhook] Invited + provisioned user: ${customerEmail}, token: ${token}, userId: ${userId}`
     );
 
-    // Send welcome email with credentials via Supabase invite
-    await supabase.auth.admin.inviteUserByEmail(customerEmail, {
-      data: {
-        full_name: customerName,
-        access_token: token,
-        app_url: APP_URL,
-      },
-    });
-
     return NextResponse.json({
-      status: "created",
+      status: "invited",
       email: customerEmail,
-      userId: newUser.user?.id,
+      userId,
     });
   } catch (err) {
     console.error("Shopify webhook error:", err);
