@@ -21,7 +21,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/api") ||
     pathname.startsWith("/icons") ||
     pathname === "/manifest.json" ||
-    pathname === "/sw.js"
+    pathname === "/sw.js" ||
+    /\.(png|jpe?g|gif|svg|webp|ico|avif)$/i.test(pathname)
   ) {
     return NextResponse.next();
   }
