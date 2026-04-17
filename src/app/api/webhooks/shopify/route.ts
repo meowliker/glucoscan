@@ -66,33 +66,46 @@ function verifyShopifyWebhook(body: string, hmacHeader: string): boolean {
 
 /**
  * Check if the order contains the GlucoScan upsell product
+ * Checks by product_id, variant_id, and product title/name (case-insensitive "glucoscan" match)
  */
 function orderContainsGlucoScan(order: {
   line_items?: Array<{
     product_id?: number;
+    variant_id?: number;
     title?: string;
     name?: string;
   }>;
 }): boolean {
   if (!order.line_items || order.line_items.length === 0) return false;
 
-  // If no product IDs configured, check by product name containing "glucoscan"
-  if (!GLUCOSCAN_PRODUCT_IDS) {
-    return order.line_items.some(
-      (item) =>
-        (item.title || "").toLowerCase().includes("glucoscan") ||
-        (item.name || "").toLowerCase().includes("glucoscan")
-    );
-  }
+  // Log all line items for debugging
+  console.log(
+    "[Shopify Webhook] Order line items:",
+    JSON.stringify(
+      order.line_items.map((item) => ({
+        product_id: item.product_id,
+        variant_id: item.variant_id,
+        title: item.title,
+        name: item.name,
+      }))
+    )
+  );
 
-  // Check by product ID
-  const allowedIds = GLUCOSCAN_PRODUCT_IDS.split(",").map((id) =>
-    id.trim()
-  );
-  return order.line_items.some(
-    (item) =>
-      item.product_id && allowedIds.includes(String(item.product_id))
-  );
+  const allowedIds = GLUCOSCAN_PRODUCT_IDS
+    ? GLUCOSCAN_PRODUCT_IDS.split(",").map((id) => id.trim())
+    : [];
+
+  return order.line_items.some((item) => {
+    // Check product_id or variant_id matches configured IDs
+    if (allowedIds.length > 0) {
+      if (item.product_id && allowedIds.includes(String(item.product_id))) return true;
+      if (item.variant_id && allowedIds.includes(String(item.variant_id))) return true;
+    }
+    // Fallback: check title/name for "glucoscan" (case-insensitive)
+    if ((item.title || "").toLowerCase().includes("glucoscan")) return true;
+    if ((item.name || "").toLowerCase().includes("glucoscan")) return true;
+    return false;
+  });
 }
 
 /**
