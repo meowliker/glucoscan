@@ -26,12 +26,42 @@ function generateToken(): string {
  * Verify Shopify webhook HMAC signature
  */
 function verifyShopifyWebhook(body: string, hmacHeader: string): boolean {
-  if (!SHOPIFY_WEBHOOK_SECRET) return false;
+  if (!SHOPIFY_WEBHOOK_SECRET) {
+    console.error("Shopify webhook: SHOPIFY_WEBHOOK_SECRET is not set");
+    return false;
+  }
+
+  // Trim any whitespace that may have been added when storing the secret
+  const secret = SHOPIFY_WEBHOOK_SECRET.trim();
+
   const hash = crypto
-    .createHmac("sha256", SHOPIFY_WEBHOOK_SECRET)
+    .createHmac("sha256", secret)
     .update(body, "utf8")
     .digest("base64");
-  return crypto.timingSafeEqual(Buffer.from(hash), Buffer.from(hmacHeader));
+
+  const expectedBuf = Buffer.from(hash);
+  const receivedBuf = Buffer.from(hmacHeader);
+
+  // timingSafeEqual throws if buffers have different lengths
+  if (expectedBuf.length !== receivedBuf.length) {
+    console.error(
+      `Shopify webhook: HMAC length mismatch. Expected ${expectedBuf.length}, got ${receivedBuf.length}`
+    );
+    return false;
+  }
+
+  try {
+    const valid = crypto.timingSafeEqual(expectedBuf, receivedBuf);
+    if (!valid) {
+      console.error(
+        `Shopify webhook: HMAC mismatch. Expected: ${hash}, Received: ${hmacHeader}`
+      );
+    }
+    return valid;
+  } catch (err) {
+    console.error("Shopify webhook: HMAC comparison error:", err);
+    return false;
+  }
 }
 
 /**
