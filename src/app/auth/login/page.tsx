@@ -7,6 +7,7 @@ import { Droplets, Mail, Eye, EyeOff } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import ForgotPasswordModal from "@/components/auth/ForgotPasswordModal";
+import SignInWithCodeModal from "@/components/auth/SignInWithCodeModal";
 import { useAuthStore } from "@/lib/store/useAuthStore";
 
 export default function LoginPage() {
@@ -21,6 +22,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [forgotOpen, setForgotOpen] = useState(false);
+  const [codeOpen, setCodeOpen] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,9 +122,26 @@ export default function LoginPage() {
           </div>
         </form>
 
+        {/* Sign in with a code */}
+        <div className="mt-4 text-center">
+          <button
+            type="button"
+            onClick={() => setCodeOpen(true)}
+            className="text-body-sm text-primary hover:underline focus:outline-none focus:underline"
+          >
+            Sign in with a code
+          </button>
+        </div>
+
         <ForgotPasswordModal
           isOpen={forgotOpen}
           onClose={() => setForgotOpen(false)}
+        />
+
+        <SignInWithCodeModal
+          isOpen={codeOpen}
+          onClose={() => setCodeOpen(false)}
+          redirectTo={redirect}
         />
 
         {/* Info text */}
