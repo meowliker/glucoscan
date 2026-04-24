@@ -3,8 +3,7 @@ import React, { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { useAuthStore } from "@/lib/store/useAuthStore";
-
-const PUBLIC_ROUTES = ["/auth/login", "/auth/signup", "/auth/callback", "/privacy", "/terms"];
+import { isPublicRoute } from "@/lib/auth/routes";
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((s) => s.user);
@@ -59,7 +58,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   }
 
   // Public routes — always accessible
-  if (PUBLIC_ROUTES.some((route) => pathname.startsWith(route))) {
+  if (isPublicRoute(pathname)) {
     return <>{children}</>;
   }
 

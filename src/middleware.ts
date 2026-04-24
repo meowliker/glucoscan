@@ -1,14 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-
-const PUBLIC_ROUTES = [
-  "/auth/login",
-  "/auth/signup",
-  "/auth/callback",
-  "/auth/reset-password",
-  "/privacy",
-  "/terms",
-];
+import { isPublicRoute } from "@/lib/auth/routes";
 
 export async function middleware(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -23,7 +15,7 @@ export async function middleware(request: NextRequest) {
 
   // Allow public routes and static assets
   if (
-    PUBLIC_ROUTES.some((route) => pathname.startsWith(route)) ||
+    isPublicRoute(pathname) ||
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api") ||
     pathname.startsWith("/icons") ||
