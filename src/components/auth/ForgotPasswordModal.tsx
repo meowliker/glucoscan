@@ -41,7 +41,10 @@ export default function ForgotPasswordModal({
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(
       trimmedEmail,
       {
-        redirectTo: `${window.location.origin}/auth/reset-password`,
+        // Route through /auth/callback so the PKCE code exchange happens
+        // server-side. Gmail pre-fetching the link will fail the exchange
+        // (no code verifier cookie) — only the real browser can complete it.
+        redirectTo: `${window.location.origin}/auth/callback?next=/auth/reset-password`,
       }
     );
     setLoading(false);
@@ -51,13 +54,10 @@ export default function ForgotPasswordModal({
       return;
     }
 
-    // Supabase intentionally doesn't reveal whether the email exists.
-    // We show the same success message either way — correct security posture.
     setSent(true);
   };
 
   const handleClose = () => {
-    // Reset state so reopening is clean
     setEmail("");
     setSent(false);
     setError("");
@@ -84,12 +84,7 @@ export default function ForgotPasswordModal({
               within the next few minutes.
             </p>
           </div>
-          <Button
-            variant="primary"
-            size="lg"
-            fullWidth
-            onClick={handleClose}
-          >
+          <Button variant="primary" size="lg" fullWidth onClick={handleClose}>
             Got it
           </Button>
         </div>
