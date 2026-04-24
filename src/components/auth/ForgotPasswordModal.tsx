@@ -41,10 +41,11 @@ export default function ForgotPasswordModal({
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(
       trimmedEmail,
       {
-        // Route through /auth/callback so the PKCE code exchange happens
-        // server-side. Gmail pre-fetching the link will fail the exchange
-        // (no code verifier cookie) — only the real browser can complete it.
-        redirectTo: `${window.location.origin}/auth/callback?next=/auth/reset-password`,
+        // redirectTo is required by Supabase but we don't use
+        // {{ .ConfirmationURL }} in our email template — the template links
+        // directly to /auth/reset-landing with {{ .Token }} and {{ .Email }},
+        // so Gmail's scanner can never pre-fetch the Supabase verify endpoint.
+        redirectTo: `${window.location.origin}/auth/reset-landing`,
       }
     );
     setLoading(false);

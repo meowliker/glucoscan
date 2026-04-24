@@ -10,6 +10,7 @@ export const PUBLIC_ROUTES = [
   "/auth/signup",
   "/auth/callback",
   "/auth/reset-password",
+  "/auth/reset-landing",
   "/privacy",
   "/terms",
 ] as const;
