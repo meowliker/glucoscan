@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Droplets, Mail, Eye, EyeOff } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import ForgotPasswordModal from "@/components/auth/ForgotPasswordModal";
 import { useAuthStore } from "@/lib/store/useAuthStore";
 
 export default function LoginPage() {
@@ -19,6 +20,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [forgotOpen, setForgotOpen] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,14 +110,20 @@ export default function LoginPage() {
 
           {/* Forgot password */}
           <div className="text-right">
-            <Link
-              href="/auth/forgot-password"
-              className="text-body-sm text-primary hover:underline"
+            <button
+              type="button"
+              onClick={() => setForgotOpen(true)}
+              className="text-body-sm text-primary hover:underline focus:outline-none focus:underline"
             >
               Forgot password?
-            </Link>
+            </button>
           </div>
         </form>
+
+        <ForgotPasswordModal
+          isOpen={forgotOpen}
+          onClose={() => setForgotOpen(false)}
+        />
 
         {/* Info text */}
         <p className="text-center text-body-sm text-text-muted mt-6">

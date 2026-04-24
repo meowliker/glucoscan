@@ -5,7 +5,6 @@ const PUBLIC_ROUTES = [
   "/auth/login",
   "/auth/signup",
   "/auth/callback",
-  "/auth/forgot-password",
   "/auth/reset-password",
   "/privacy",
   "/terms",

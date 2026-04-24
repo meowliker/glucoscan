@@ -4,18 +4,20 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { Session } from "@supabase/supabase-js";
-import { Droplets, Eye, EyeOff } from "lucide-react";
+import { Droplets, Lock, Eye, EyeOff, CheckCircle2 } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
-type Status = "checking" | "ready" | "invalid";
+type Status = "checking" | "ready" | "invalid" | "success";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
   const [status, setStatus] = useState<Status>("checking");
   const [newPassword, setNewPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [hashError, setHashError] = useState("");
@@ -35,37 +37,40 @@ export default function ResetPasswordPage() {
       const errDesc = params.get("error_description");
       if (errCode || errDesc) {
         setHashError(
-          errDesc?.replace(/\+/g, " ") || "Reset link invalid or expired"
+          errDesc?.replace(/\+/g, " ") ||
+            "This reset link is invalid or has expired."
         );
         setStatus("invalid");
         return;
       }
     }
 
-    // Supabase SSR client auto-exchanges the recovery code in the URL for a session.
-    // We only need to confirm a session exists before showing the form.
+    // The Supabase SSR client auto-exchanges the recovery code from the URL
+    // into a session. We just need to confirm a session exists.
     const check = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
       if (session) {
         setStatus("ready");
-      } else {
-        // Sometimes the session shows up a moment later via onAuthStateChange
-        const { data: sub } = supabase.auth.onAuthStateChange(
-          (_event: string, s: Session | null) => {
-            if (s) {
-              setStatus("ready");
-              sub.subscription.unsubscribe();
-            }
-          }
-        );
-        // If nothing arrives within 3s, treat as invalid
-        setTimeout(() => {
-          setStatus((prev) => (prev === "checking" ? "invalid" : prev));
-          sub.subscription.unsubscribe();
-        }, 3000);
+        return;
       }
+
+      // Session may arrive a beat later via onAuthStateChange
+      const { data: sub } = supabase.auth.onAuthStateChange(
+        (_event: string, s: Session | null) => {
+          if (s) {
+            setStatus("ready");
+            sub.subscription.unsubscribe();
+          }
+        }
+      );
+
+      // If still nothing after 3s, the link didn't carry a valid session
+      setTimeout(() => {
+        setStatus((prev) => (prev === "checking" ? "invalid" : prev));
+        sub.subscription.unsubscribe();
+      }, 3000);
     };
     check();
   }, []);
@@ -76,6 +81,10 @@ export default function ResetPasswordPage() {
 
     if (newPassword.length < 8) {
       setError("Password must be at least 8 characters");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setError("Passwords don't match");
       return;
     }
 
@@ -96,20 +105,31 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    router.push("/");
-    router.refresh();
+    setStatus("success");
+    // Give the user a moment to see the success state, then redirect
+    setTimeout(() => {
+      router.push("/");
+      router.refresh();
+    }, 1200);
   };
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4">
       <div className="w-full max-w-sm">
+        {/* Logo + heading */}
         <div className="flex flex-col items-center mb-8">
           <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-3">
             <Droplets size={32} className="text-primary" />
           </div>
-          <h1 className="text-h1 text-text-primary">Choose a new password</h1>
+          <h1 className="text-h1 text-text-primary">
+            {status === "success" ? "Password updated" : "Reset password"}
+          </h1>
           <p className="text-body-sm text-text-muted mt-1 text-center">
-            Pick something you&apos;ll remember.
+            {status === "success"
+              ? "You're all set. Redirecting you now..."
+              : status === "invalid"
+              ? "This reset link can't be used anymore."
+              : "Create a new password for your account."}
           </p>
         </div>
 
@@ -124,14 +144,26 @@ export default function ResetPasswordPage() {
             <div className="p-3 bg-status-errorBg border border-status-error/20 rounded-button">
               <p className="text-body-sm text-status-error">
                 {hashError ||
-                  "This reset link is no longer valid. Request a new code to continue."}
+                  "This reset link is no longer valid. Request a new one to continue."}
               </p>
             </div>
-            <Link href="/auth/forgot-password" className="block">
+            <Link href="/auth/login" className="block">
               <Button variant="primary" size="lg" fullWidth>
-                Request a new code
+                Back to sign in
               </Button>
             </Link>
+          </div>
+        )}
+
+        {status === "success" && (
+          <div className="flex items-start gap-3 p-4 bg-primary/10 border border-primary/20 rounded-button">
+            <CheckCircle2
+              size={20}
+              className="text-primary mt-0.5 flex-shrink-0"
+            />
+            <p className="text-body-sm text-text-primary">
+              Your password has been updated. You&apos;re now signed in.
+            </p>
           </div>
         )}
 
@@ -146,7 +178,7 @@ export default function ResetPasswordPage() {
             <div className="relative">
               <Input
                 label="New password"
-                type={showPassword ? "text" : "password"}
+                type={showNew ? "text" : "password"}
                 placeholder="At least 8 characters"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
@@ -154,13 +186,41 @@ export default function ResetPasswordPage() {
                 minLength={8}
                 autoFocus
               />
+              <Lock
+                size={18}
+                className="absolute left-4 top-[38px] text-text-muted pointer-events-none opacity-0"
+              />
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
+                onClick={() => setShowNew(!showNew)}
                 className="absolute right-4 top-[38px] text-text-muted hover:text-text-secondary"
                 tabIndex={-1}
+                aria-label={showNew ? "Hide password" : "Show password"}
               >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                {showNew ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+
+            <div className="relative">
+              <Input
+                label="Confirm new password"
+                type={showConfirm ? "text" : "password"}
+                placeholder="Re-enter new password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                minLength={8}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirm(!showConfirm)}
+                className="absolute right-4 top-[38px] text-text-muted hover:text-text-secondary"
+                tabIndex={-1}
+                aria-label={
+                  showConfirm ? "Hide password" : "Show password"
+                }
+              >
+                {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
 
@@ -171,7 +231,7 @@ export default function ResetPasswordPage() {
               fullWidth
               loading={loading}
             >
-              {loading ? "Saving..." : "Save new password"}
+              {loading ? "Saving..." : "Reset password"}
             </Button>
           </form>
         )}
