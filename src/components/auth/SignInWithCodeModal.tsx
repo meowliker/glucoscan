@@ -64,9 +64,14 @@ export default function SignInWithCodeModal({
 
     // shouldCreateUser: false — only sends code to existing GlucoScan users.
     // We don't surface the error to avoid leaking whether an email is registered.
+    // emailRedirectTo ensures {{ .ConfirmationURL }} uses the live domain,
+    // not whatever Site URL is set in Supabase dashboard.
     await supabase.auth.signInWithOtp({
       email: targetEmail,
-      options: { shouldCreateUser: false },
+      options: {
+        shouldCreateUser: false,
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
     });
 
     return true;
